@@ -13,7 +13,7 @@ class ChooseCounterMin(val chosenMaxArmy: Army, val nonChosenMaxArmy: Army) exte
   def expectedNumberOfMinArmiesInHandPostMove(gameState: GameState) : Int = gameState.armiesPreRound - (if (gameState.isLastRound) 4 else 2)
 
   var previousMinArmyPutUp : Option[Army] = None
-  var previousMaxArmyCounters : Option[Pair[Army, Army]] = None
+  var previousMaxArmyCounters : Option[(Army, Army)] = None
 
   override def nextMoves(gameState: GameState) : List[Move] = {
     if (gameState.isLastRound) {
@@ -24,11 +24,11 @@ class ChooseCounterMin(val chosenMaxArmy: Army, val nonChosenMaxArmy: Army) exte
   }
 
   override def makeMove(gameState: GameState): Unit = {
-    gameState.addMatchup(chosenMaxArmy, gameState.minArmyPutUp.get)
+    gameState.addMatchup(new Matchup(chosenMaxArmy, gameState.minArmyPutUp.get), gameState.nextScenario)
     if (gameState.isLastRound) {
       val remainingMinArmyInHand: Army = gameState.minArmiesInHand.head
       gameState.removeMinArmyFromHand(remainingMinArmyInHand)
-      gameState.addMatchup(nonChosenMaxArmy, remainingMinArmyInHand)
+      gameState.addMatchup(new Matchup(nonChosenMaxArmy, remainingMinArmyInHand), gameState.lastScenario)
     } else {
       gameState.addMaxArmyToHand(nonChosenMaxArmy)
     }
@@ -40,9 +40,9 @@ class ChooseCounterMin(val chosenMaxArmy: Army, val nonChosenMaxArmy: Army) exte
 
   override def undoMove(gameState: GameState): Unit = {
     if (gameState.isLastRound) {
-      val nonChosenMatchup: (Army, Army) = gameState.removeMatchup()
-      val chosenMatchup: (Army, Army) = gameState.removeMatchup()
-      gameState.addMinArmyToHand(nonChosenMatchup._2)
+      val nonChosenMatchup: Matchup = gameState.removeMatchup()
+      val chosenMatchup: Matchup = gameState.removeMatchup()
+      gameState.addMinArmyToHand(nonChosenMatchup.minArmy)
     } else {
       gameState.removeMatchup()
       gameState.removeMaxArmyFromHand(nonChosenMaxArmy)
@@ -53,9 +53,9 @@ class ChooseCounterMin(val chosenMaxArmy: Army, val nonChosenMaxArmy: Army) exte
     previousMinArmyPutUp = None
   }
 
-  def chosenMatchupScore(gameState: GameState) = gameState.scoreMatchup(chosenMaxArmy, gameState.minArmyPutUp.get)
+  def chosenMatchupScore(gameState: GameState) = gameState.scoreMatchup(chosenMaxArmy, gameState.minArmyPutUp.get, gameState.nextScenario)
 
-  def nonChosenMatchupScore(gameState: GameState) = gameState.scoreMatchup(nonChosenMaxArmy, gameState.minArmiesInHand.head)
+  def nonChosenMatchupScore(gameState: GameState) = gameState.scoreMatchup(nonChosenMaxArmy, gameState.minArmiesInHand.head, gameState.lastScenario)
 
   override def score(gameState: GameState, minMoves: List[Move]) = {
     val score = gameState.scoreChosenMatchups(minMoves)
@@ -72,4 +72,11 @@ class ChooseCounterMin(val chosenMaxArmy: Army, val nonChosenMaxArmy: Army) exte
   override def toString = "Min chooses " + chosenMaxArmy
 
   def maximizing : Boolean = false
+
+  def staticValue(gameState: GameState, minMoves: List[Move]): Score = {
+    var currentMatchupsScore = gameState.scoreChosenMatchups(minMoves)
+
+    val aggregate: Score = gameState.aggregateRemainingPossibleMatchups
+    Score.estimatedScore(currentMatchupsScore.minScore, aggregate.total, aggregate.combinations, minMoves)
+  }
 }

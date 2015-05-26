@@ -1,7 +1,5 @@
 package pairing
 
-import pairing.TestData._
-
 import scala.collection.mutable
 object Pairing {
   def printMovesToConsole(moves: List[Move]): Unit = {
@@ -10,8 +8,7 @@ object Pairing {
     }
   }
 
-  def main(args: Array[String]): Int = {
-    val pairing: Pairing = lagkamp3
+  def runInteractivePairing(pairing: Pairing) {
 
     while (true) {
       val possibleMoves: List[Move] = pairing.nextMoves()
@@ -19,11 +16,10 @@ object Pairing {
       if (pairing.moves.nonEmpty && pairing.moves.size % 6 == 0) {
         Console.println("#Matchups#")
         var accumulatedScore = 0
-        for ((m,i) <- pairing.gameState.chosenMatchups.reverse.zipWithIndex) {
-          val scenario = pairing.scenarioOrder(i)
-          val matchupScore: Int = pairing.gameState.scoreMatchupWithScenario(m._1, m._2, scenario)
+        for (((matchup,scenario),i) <- pairing.gameState.chosenMatchups.reverse.zipWithIndex) {
+          val matchupScore: Int = pairing.gameState.scoreMatchup(matchup.maxArmy, matchup.minArmy, scenario)
           accumulatedScore += matchupScore
-          Console.println(m._1 + " vs " + m._2 + " " + scenario + " (" + matchupScore + ")")
+          Console.println(matchup.maxArmy + " vs " + matchup.minArmy + " " + scenario + " (" + matchupScore + ")")
         }
         Console.println("Score: " + accumulatedScore)
         Console.println("#Matchups#")
@@ -35,7 +31,7 @@ object Pairing {
         Console.println("[" + 0 + "] Undo previous move")
       }
       if (pairing.moves.size > 3) {
-        pairing.evaluateMoves(Nil)
+        pairing.evaluateMoves(depth = 6)
       } else {
         Pairing.printMovesToConsole(possibleMoves)
       }
@@ -59,10 +55,9 @@ object Pairing {
       Console.println("#######################")
       Console.println()
     }
-    0
   }
 
-  def counterCombinations(armies: Iterable[Army]) : Iterable[(Army,Army)] = {
+  def combinations(armies: Iterable[Army]) : Iterable[(Army,Army)] = {
     for (a1 <- armies; a2 <- armies if a1.name < a2.name) yield (a1,a2)
   }
 }
@@ -85,14 +80,14 @@ class Pairing(val scenarioOrder: List[Scenario], matchupEvaluations: MatchupEval
   }
 
 
-  def evaluateMoves(premoves: List[Move]): Unit = {
+  def evaluateMoves(premoves: List[Move] = Nil, depth: Int = Int.MaxValue): Unit = {
     val movesToExcludeFromPrint : List[Move] = moves.toList ::: premoves
     premoves.map { move =>
       makeMove(move)
     }
     for ((move,i) <- nextMoves().zipWithIndex) {
       makeMove(move)
-      var score = alphaBeta(move, 0, Score.MINIMUM_SCORE, Score.MAXIMUM_SCORE, !move.maximizing)
+      var score = alphaBeta(move, depth, Score.MINIMUM_SCORE, Score.MAXIMUM_SCORE, !move.maximizing)
       undoMove(move)
       println("[" + (i+1) + "] " + move.getDescription(gameState) + ", score: " + score + " " + score.getMinMovesDescription(move :: movesToExcludeFromPrint))
     }
@@ -112,6 +107,10 @@ class Pairing(val scenarioOrder: List[Scenario], matchupEvaluations: MatchupEval
     if (move.nextMoves(gameState).isEmpty) {
       return move.score(gameState, moves.toList.reverse)
     }
+    if (false && depth <= 0 && move.isInstanceOf[ChooseCounterMin]) {
+      // TODO fix, does not work => leads to ~40 points for entire first round
+      return move.asInstanceOf[ChooseCounterMin].staticValue(gameState, moves.toList.reverse)
+    }
     var alpha = alphaInput
     var beta = betaInput
 
@@ -119,7 +118,7 @@ class Pairing(val scenarioOrder: List[Scenario], matchupEvaluations: MatchupEval
       var v : Score = Score.MINIMUM_SCORE
       for (child: Move <- move.nextMoves(gameState)) {
         makeMove(child)
-        v = Score.max(v, alphaBeta(child, depth + 1, alpha, beta, false))
+        v = Score.max(v, alphaBeta(child, depth - 1, alpha, beta, false))
         undoMove(child)
         alpha = Score.max(alpha, v)
         if (beta.compare(alpha) <= 0) {
@@ -131,7 +130,7 @@ class Pairing(val scenarioOrder: List[Scenario], matchupEvaluations: MatchupEval
       var v : Score = Score.MAXIMUM_SCORE
       for (child: Move <- move.nextMoves(gameState)) {
         makeMove(child)
-        v = Score.min(v, alphaBeta(child, depth + 1, alpha, beta, true))
+        v = Score.min(v, alphaBeta(child, depth - 1, alpha, beta, true))
         undoMove(child)
         beta = Score.min(beta, v)
         if (beta.compare(alpha) <= 0) {

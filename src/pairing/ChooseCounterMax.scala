@@ -13,14 +13,14 @@ class ChooseCounterMax(val chosenMinArmy: Army, val nonChosenMinArmy: Army) exte
   def expectedNumberOfMinArmiesInHandPostMove(gameState: GameState) : Int = gameState.armiesPreRound - (if (gameState.isLastRound) 3 else 2)
 
   var previousMaxArmyPutUp : Option[Army] = None
-  var previousMinArmyCounters : Option[Pair[Army, Army]] = None
+  var previousMinArmyCounters : Option[(Army, Army)] = None
 
   override def makeMove(gameState: GameState): Unit = {
-    gameState.addMatchup(new Pair(gameState.maxArmyPutUp.get, chosenMinArmy))
+    gameState.addMatchup(new Matchup(gameState.maxArmyPutUp.get, chosenMinArmy), gameState.nextScenario)
     if (gameState.isLastRound) {
       val remainingMaxArmyInHand = gameState.maxArmiesInHand.head
       gameState.removeMaxArmyFromHand(remainingMaxArmyInHand)
-      gameState.addMatchup(remainingMaxArmyInHand, nonChosenMinArmy)
+      gameState.addMatchup(new Matchup(remainingMaxArmyInHand, nonChosenMinArmy), gameState.lastScenario)
     } else {
       gameState.addMinArmyToHand(nonChosenMinArmy)
     }
@@ -32,11 +32,11 @@ class ChooseCounterMax(val chosenMinArmy: Army, val nonChosenMinArmy: Army) exte
 
   override def undoMove(gameState: GameState): Unit = {
     if (gameState.isLastRound) {
-      val nonChosenMatchup: (Army, Army) = gameState.removeMatchup()
+      val nonChosenMatchup = gameState.removeMatchup()
       val chosenMatchup = gameState.removeMatchup()
-      gameState.addMaxArmyToHand(nonChosenMatchup._1)
+      gameState.addMaxArmyToHand(nonChosenMatchup.maxArmy)
     } else {
-      val chosenMatchup: (Army, Army) = gameState.removeMatchup()
+      val chosenMatchup: Matchup = gameState.removeMatchup()
       gameState.removeMinArmyFromHand(nonChosenMinArmy)
     }
     gameState.maxArmyPutUp = previousMaxArmyPutUp
@@ -45,9 +45,9 @@ class ChooseCounterMax(val chosenMinArmy: Army, val nonChosenMinArmy: Army) exte
     previousMinArmyCounters = None
   }
 
-  def chosenMatchupScore(gameState: GameState) = gameState.scoreMatchup(gameState.maxArmyPutUp.get, chosenMinArmy)
+  def chosenMatchupScore(gameState: GameState) = gameState.scoreMatchup(gameState.maxArmyPutUp.get, chosenMinArmy, gameState.nextScenario)
 
-  def nonChosenMatchupScore(gameState: GameState) = gameState.scoreMatchup(gameState.maxArmiesInHand.head, nonChosenMinArmy)
+  def nonChosenMatchupScore(gameState: GameState) = gameState.scoreMatchup(gameState.maxArmiesInHand.head, nonChosenMinArmy, gameState.lastScenario)
 
   def getDescription(gameState: GameState) = {
     val nonChosen = if (gameState.maxArmiesInHand.size == 1) nonChosenMinArmy + " vs " + gameState.maxArmiesInHand.head + "(" + nonChosenMatchupScore(gameState) + ")" else "return " + nonChosenMinArmy + " to hand"

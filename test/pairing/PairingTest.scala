@@ -13,7 +13,7 @@ class PairingTest {
 
   @Test
   def alphaBetaTestStefleifs(): Unit = {
-    new Pairing(Scenario.battlelineFirst, MatchupEvalauations.fromScoreArray(bskTeam, stefleifs, scoreArraystefleifs)).evaluateMoves(Nil)
+    new Pairing(Scenario.battlelineFirst, MatchupEvalauations.fromScoreArray(bskTeam, stefleifs, scoreArrayOlannonTest2)).evaluateMoves(Nil)
   }
 
   @Test
@@ -38,17 +38,18 @@ class PairingTest {
       new PutUpMin(new Army("Lasse EM")) ::
       new CounterMax(new Army("Christian"), new Army("Stian")) ::
       new CounterMin(new Army("Kenneth OK"), new Army("Geir DE")) ::
-        //new ChooseCounterMax(new Army("Geir DE"), new Army("Kenneth OK")) ::
-        //new ChooseCounterMin(new Army("Christian"), new Army("Stian")) ::
+        new ChooseCounterMax(new Army("Geir DE"), new Army("Kenneth OK")) ::
+        new ChooseCounterMin(new Army("Christian"), new Army("Stian")) ::
 //        new PutUpMax(new Army("Stian")) ::
 //        new PutUpMin(new Army("Mats WoC")) ::
-//        new CounterMax(new Army("Amund"), new Army("Øystein")) ::
+//        new CounterMax(new Army("Amund"), new Army("?ystein")) ::
 //        new CounterMin(new Army("Thomas BR"), new Army("Julian DW")) ::
 //        new ChooseCounterMax(new Army("Thomas BR"), new Army("Julian DW")) ::
 //        new ChooseCounterMin(new Army("Øystein"), new Army("Amund")) ::
 //        new PutUpMax(new Army("Jarle")) ::
 //        new PutUpMin(new Army("Julian DW")) ::
-        Nil)
+        Nil,
+    6)
   }
 
   @Test

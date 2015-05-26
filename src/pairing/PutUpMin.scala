@@ -2,7 +2,7 @@ package pairing
 
 class PutUpMin(val army: Army) extends Move {
   def nextMoves(gameState: GameState) : List[Move] = {
-    Pairing.counterCombinations(gameState.maxArmiesInHand).map { counters: (Army, Army) =>
+    Pairing.combinations(gameState.maxArmiesInHand).map { counters: (Army, Army) =>
       new CounterMax(counters)
     }.toList
   }

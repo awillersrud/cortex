@@ -6,17 +6,17 @@ object Scenario {
   val KING_OF_THE_HILL:Scenario = new Scenario("King of the Hill")
   val MEETING_ENGAGEMENT:Scenario = new Scenario("Meeting Engagement")
 
-  val battlelineFirst:List[Scenario] = BATTLELINE :: BATTLELINE :: MEETING_ENGAGEMENT :: MEETING_ENGAGEMENT :: BLOOD_AND_GLORY :: BLOOD_AND_GLORY ::
-    KING_OF_THE_HILL :: KING_OF_THE_HILL :: Nil
+  val battlelineFirst:List[Scenario] = BATTLELINE :: MEETING_ENGAGEMENT :: BLOOD_AND_GLORY :: KING_OF_THE_HILL :: Nil
 
-  val meetingEngagementFirst:List[Scenario] = MEETING_ENGAGEMENT :: MEETING_ENGAGEMENT :: BLOOD_AND_GLORY :: BLOOD_AND_GLORY ::
-    KING_OF_THE_HILL :: KING_OF_THE_HILL :: BATTLELINE :: BATTLELINE :: Nil
+  val meetingEngagementFirst:List[Scenario] = MEETING_ENGAGEMENT :: BLOOD_AND_GLORY :: KING_OF_THE_HILL :: BATTLELINE :: Nil
 
-  val bloodAndGloryFirst:List[Scenario] = BLOOD_AND_GLORY :: BLOOD_AND_GLORY ::
-    KING_OF_THE_HILL :: KING_OF_THE_HILL :: BATTLELINE :: BATTLELINE :: MEETING_ENGAGEMENT :: MEETING_ENGAGEMENT :: Nil
+  val meetingEngagementFirst3:List[Scenario] = MEETING_ENGAGEMENT :: BLOOD_AND_GLORY :: KING_OF_THE_HILL :: Nil
 
-  val kingOfTheHillFirst:List[Scenario] = KING_OF_THE_HILL :: KING_OF_THE_HILL :: BATTLELINE :: BATTLELINE ::
-    MEETING_ENGAGEMENT :: MEETING_ENGAGEMENT :: BLOOD_AND_GLORY :: BLOOD_AND_GLORY :: Nil
+  val bloodAndGloryFirst:List[Scenario] = BLOOD_AND_GLORY :: KING_OF_THE_HILL :: BATTLELINE :: MEETING_ENGAGEMENT :: Nil
+
+  val kingOfTheHillFirst:List[Scenario] = KING_OF_THE_HILL :: BATTLELINE :: MEETING_ENGAGEMENT :: BLOOD_AND_GLORY :: Nil
+
+  val kingOfTheHillFirst3:List[Scenario] = KING_OF_THE_HILL :: MEETING_ENGAGEMENT :: BLOOD_AND_GLORY :: Nil
 }
 case class Scenario(name:String) {
   override def toString = name

@@ -3,7 +3,7 @@ package pairing
 class CounterMax(val counters: (Army, Army)) extends Move {
 
   override def nextMoves(gameState: GameState) : List[Move] = {
-    Pairing.counterCombinations(gameState.minArmiesInHand).map { counters: (Army, Army) =>
+    Pairing.combinations(gameState.minArmiesInHand).map { counters: (Army, Army) =>
       new CounterMin(counters)
     }.toList
   }

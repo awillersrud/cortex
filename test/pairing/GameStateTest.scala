@@ -5,6 +5,8 @@ import org.junit.Assert._
 import org.junit._
 import pairing.TestData._
 
+import scala.util.Random
+
 class GameStateTest {
 
   @Test
@@ -115,6 +117,11 @@ class GameStateTest {
   def addMatchup(gameState: GameState, maxArmy: Army, minArmy: Army) {
     gameState.removeMaxArmyFromHand(maxArmy)
     gameState.removeMinArmyFromHand(minArmy)
-    gameState.addMatchup(maxArmy, minArmy)
+    gameState.addMatchup(new Matchup(maxArmy, minArmy), Scenario.BATTLELINE)
+  }
+
+  @Test
+  def testRandomizeTables(): Unit = {
+    Console.println(Random.shuffle((1 to 8).toSet))
   }
 }
