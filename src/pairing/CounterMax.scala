@@ -27,7 +27,15 @@ class CounterMax(val counters: (Army, Army)) extends Move {
 
   def getDescription(gameState: GameState) = gameState.maxTeam + " counters: (" + counters._1.name + "," + counters._2.name + ")"
 
-  override def toString = "Max counters " + counters._1 + " and " + counters._2
+  override def choiceDescription = "Max counters"
+
+  override def choice = counters._1 + "/" + counters._2
+
+  override def equals(other: Any) : Boolean = other match {
+    case counterMax:CounterMax => (counterMax.counters._1.equals(counters._1) && counterMax.counters._2.equals(counters._2)) ||
+      (counterMax.counters._2.equals(counters._1) && counterMax.counters._1.equals(counters._2))
+    case _ => false
+  }
 
   def maximizing : Boolean = true
 }

@@ -1,11 +1,15 @@
 package pairing
 
-class Score(val minScore: Int, val total: Int, val combinations: Int, val moves: List[Move]) extends Ordered[Score] {
+class Score(val minScore: Int, val total: Int, val combinations: Int, val moves: List[Move], val continuation: List[(Move, Score)] = Nil) extends Ordered[Score] {
   override def toString = {
-    if (combinations > 1)
-      "min: " + minScore + ", avg: " + "%1.1f".format(avg) + ", combinations: " + combinations
-    else
-      "min: " + minScore
+      "" + minScore
+  }
+
+  def getContinuationDescription: String = {
+    continuation.sortBy(_._2.minScore) match {
+      case Nil => "[Not available]"
+      case xs => xs.head._1.choiceDescription + "[" + xs.map(s => s._1.choice + ":" + s._2.minScore).mkString(", ") + "]"
+    }
   }
 
   def getMinMovesDescription(premoves: List[Move]): String = {

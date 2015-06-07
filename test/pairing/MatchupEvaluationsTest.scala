@@ -8,10 +8,17 @@ import pairing.TestData._
 import scala.collection.mutable
 
 class MatchupEvaluationsTest {
-  
+
+  @Test
+  def testValidPairing(): Unit = {
+    val pairing: Pairing = Treningskamper.lagkamp5
+    val eval = pairing.matchupEvaluations
+    eval.validate()
+  }
+
   @Test
   def testValidEvaluations(): Unit = {
-    val eval = new MatchupEvalauations(bskTeam, stefleifs)
+    val eval = new MatchupEvaluations(bskTeam, stefleifs)
     for (maxArmy <- bskTeam.armies) {
       for (minArmy <- stefleifs.armies) {
         val matchup: Matchup = new Matchup(maxArmy, minArmy)
@@ -31,7 +38,7 @@ class MatchupEvaluationsTest {
 
   @Test
   def testBuildFromScoreArray(): Unit = {
-    val evalauations: MatchupEvalauations = MatchupEvalauations.fromScoreArray(bskTeam, stefleifs, scoreArraystefleifs)
+    val evalauations: MatchupEvaluations = MatchupEvaluations.fromScoreArray(bskTeam, stefleifs, scoreArraystefleifs)
     evalauations.validate()
 
   }

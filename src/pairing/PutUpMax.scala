@@ -24,7 +24,13 @@ class PutUpMax(val army: Army) extends Move {
     gameState.round -= 1
   }
 
-  override def toString = "Max put up " + army
+  override def choiceDescription = "Max put up"
+  override def choice = army.name
+
+  override def equals(other: Any) = other match {
+    case putUpMax:PutUpMax => putUpMax.army.equals(army)
+    case _ => false
+  }
 
   def maximizing : Boolean = true
 }

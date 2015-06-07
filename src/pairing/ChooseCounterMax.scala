@@ -56,7 +56,14 @@ class ChooseCounterMax(val chosenMinArmy: Army, val nonChosenMinArmy: Army) exte
       nonChosen
   }
 
-  override def toString = "Max chooses " + chosenMinArmy
+  override def equals(other: Any) = other match {
+    case chooseCounterMax:ChooseCounterMax => chooseCounterMax.chosenMinArmy.equals(chosenMinArmy) && chooseCounterMax.nonChosenMinArmy.equals(nonChosenMinArmy)
+    case _ => false
+  }
+
+  override def choiceDescription = "Max chooses"
+
+  override def choice = chosenMinArmy.name
 
   def maximizing : Boolean = true
 

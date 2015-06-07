@@ -1,15 +1,15 @@
 package pairing
 
-import pairing.MatchupEvalauations.EvaluationArray
+import pairing.MatchupEvaluations.EvaluationArray
 
 import scala.collection.mutable
 
-object MatchupEvalauations {
+object MatchupEvaluations {
   type EvaluationArray = mutable.Map[Matchup, Int]
   type ScoreArray = Array[Array[Int]]
 
-  def fromScoreArray(maxTeam:Team, minTeam:Team, scoreArray: ScoreArray) : MatchupEvalauations = {
-    val evaluations: MatchupEvalauations = new MatchupEvalauations(maxTeam, minTeam)
+  def fromScoreArray(maxTeam:Team, minTeam:Team, scoreArray: ScoreArray) : MatchupEvaluations = {
+    val evaluations: MatchupEvaluations = new MatchupEvaluations(maxTeam, minTeam)
     for ((maxArmy, maxArmyIndex) <- maxTeam.armies.zipWithIndex) {
       for ((minArmy, minArmyIndex) <- minTeam.armies.zipWithIndex) {
         val matchup: Matchup = new Matchup(maxArmy, minArmy)
@@ -24,8 +24,8 @@ object MatchupEvalauations {
     evaluations
   }
 
-  def fromScoreArray(maxTeam:Team, minTeam:Team, battleline: ScoreArray, bloodAndGlory: ScoreArray, kingOfTheHill: ScoreArray, meetingEngagement: ScoreArray) : MatchupEvalauations = {
-    val evaluations: MatchupEvalauations = new MatchupEvalauations(maxTeam, minTeam)
+  def fromScoreArray(maxTeam:Team, minTeam:Team, battleline: ScoreArray, bloodAndGlory: ScoreArray, kingOfTheHill: ScoreArray, meetingEngagement: ScoreArray) : MatchupEvaluations = {
+    val evaluations: MatchupEvaluations = new MatchupEvaluations(maxTeam, minTeam)
     for ((maxArmy, maxArmyIndex) <- maxTeam.armies.zipWithIndex) {
       for ((minArmy, minArmyIndex) <- minTeam.armies.zipWithIndex) {
         val matchup: Matchup = new Matchup(maxArmy, minArmy)
@@ -40,7 +40,7 @@ object MatchupEvalauations {
   }
 }
 
-class MatchupEvalauations(val maxTeam:Team, val minTeam:Team) {
+class MatchupEvaluations(val maxTeam:Team, val minTeam:Team) {
 
   var battleLine:mutable.Map[Matchup, Int] = new mutable.HashMap[Matchup, Int]()
   var scenarioEvaluations:mutable.Map[Scenario, EvaluationArray] = new mutable.HashMap[Scenario, EvaluationArray]()
@@ -60,7 +60,9 @@ class MatchupEvalauations(val maxTeam:Team, val minTeam:Team) {
     for (scenario <- Scenario.BATTLELINE :: Scenario.BLOOD_AND_GLORY :: Scenario.KING_OF_THE_HILL :: Scenario.MEETING_ENGAGEMENT :: Nil) {
       for (maxArmy <- maxTeam.armies) {
         for (minArmy <- minTeam.armies) {
-          scoreMatchup(new Matchup(maxArmy, minArmy), scenario)
+          val matchup: Matchup = new Matchup(maxArmy, minArmy)
+          val score: Int = scoreMatchup(matchup, scenario)
+          //println(matchup.maxArmy + " vs " + matchup.minArmy + " in " + scenario + "(" + score + ")")
         }
       }
     }
@@ -73,14 +75,13 @@ class MatchupEvalauations(val maxTeam:Team, val minTeam:Team) {
     }
     scenario match {
       case Scenario.BATTLELINE => battleLineScore
-      case _ => {
+      case _ =>
         val scenarioEvals: EvaluationArray = scenarioEvaluations.get(scenario).get
         val scenarioScore = scenarioEvals.get(matchup) match {
-          case None => throw new IllegalStateException("Missing scenario evalutaion for matchup: " + matchup)
+          case None => throw new IllegalStateException("Missing scenario evaluation for matchup: " + matchup)
           case Some(score: Int) => score
         }
         scenarioScore + battleLineScore
-      }
     }
   }
 }
@@ -92,7 +93,7 @@ case class Matchup(maxArmy:Army, minArmy: Army) {
     case a:Any => false
   }
 
-  override def hashCode = (maxArmy :: minArmy :: Nil).hashCode
+  override def hashCode = (maxArmy :: minArmy :: Nil).hashCode()
 }
 
 

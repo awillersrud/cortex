@@ -25,7 +25,15 @@ class CounterMin(val counters: (Army, Army)) extends Move {
 
   def getDescription(gameState: GameState) = gameState.minTeam.name + " counters: (" + counters._1.name + "," + counters._2.name + ")"
 
-  override def toString = "Min counters " + counters._1 + " and " + counters._2
+  override def choiceDescription = "Min counters"
+
+  override def choice = counters._1 + "/" + counters._2
+
+  override def equals(other: Any) : Boolean = other match {
+    case counterMin:CounterMin => (counterMin.counters._1.equals(counters._1) && counterMin.counters._2.equals(counters._2)) ||
+      (counterMin.counters._2.equals(counters._1) && counterMin.counters._1.equals(counters._2))
+    case _ => false
+  }
 
   def maximizing : Boolean = false
 }

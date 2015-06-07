@@ -1,77 +1,35 @@
 package pairing
 
+import java.util.concurrent.TimeUnit
+
 import scala.collection.mutable
+import scala.concurrent.duration.Duration
+
 object Pairing {
-  def printMovesToConsole(moves: List[Move]): Unit = {
-    for ((move,i) <- moves.zipWithIndex) {
-      Console.println("[" + (i+1) + "] " + move)
-    }
-  }
-
-  def runInteractivePairing(pairing: Pairing) {
-
-    while (true) {
-      val possibleMoves: List[Move] = pairing.nextMoves()
-
-      if (pairing.moves.nonEmpty && pairing.moves.size % 6 == 0) {
-        Console.println("#Matchups#")
-        var accumulatedScore = 0
-        for (((matchup,scenario),i) <- pairing.gameState.chosenMatchups.reverse.zipWithIndex) {
-          val matchupScore: Int = pairing.gameState.scoreMatchup(matchup.maxArmy, matchup.minArmy, scenario)
-          accumulatedScore += matchupScore
-          Console.println(matchup.maxArmy + " vs " + matchup.minArmy + " " + scenario + " (" + matchupScore + ")")
-        }
-        Console.println("Score: " + accumulatedScore)
-        Console.println("#Matchups#")
-        Console.println()
-      }
-
-      Console.println("Possible moves:")
-      if (pairing.moves.nonEmpty) {
-        Console.println("[" + 0 + "] Undo previous move")
-      }
-      if (pairing.moves.size > 3) {
-        pairing.evaluateMoves(depth = 6)
-      } else {
-        Pairing.printMovesToConsole(possibleMoves)
-      }
-
-
-      Console.println("Choose move: ")
-      val choice: Int = Console.readInt()
-      if (choice == 0) {
-        pairing.undoMove(pairing.moves.head)
-      } else {
-        val move : Option[Move] = possibleMoves.lift(choice - 1)
-        move match {
-          case None => Console.println("Choice " + choice + " does not exist. Try again.")
-          case Some(chosenMove) => {
-            Console.println("Performing move [" + choice + "] " + chosenMove)
-            pairing.makeMove(chosenMove)
-          }
-        }
-      }
-      Console.println()
-      Console.println("#######################")
-      Console.println()
-    }
-  }
-
-  def combinations(armies: Iterable[Army]) : Iterable[(Army,Army)] = {
-    for (a1 <- armies; a2 <- armies if a1.name < a2.name) yield (a1,a2)
+  def combinations(armies: Iterable[Army]): Iterable[(Army, Army)] = {
+    for (a1 <- armies; a2 <- armies if a1.name < a2.name) yield (a1, a2)
   }
 }
-class Pairing(val scenarioOrder: List[Scenario], matchupEvaluations: MatchupEvalauations) {
+
+class Pairing(val scenarioOrder: List[Scenario], val matchupEvaluations: MatchupEvaluations) {
+  def remainingMoves = {
+    val requiredRounds : Int = (gameState.numberOfArmies - 2) / 2
+    val requiredMoves = requiredRounds * 6
+    requiredMoves - moves.size
+  }
+
 
   val gameState: GameState = new GameState(scenarioOrder, matchupEvaluations)
+
+  val calculatedMoves = mutable.Set[Evaluation]()
 
   val maxTeam = matchupEvaluations.maxTeam
   val minTeam = matchupEvaluations.minTeam
 
-  var moves : mutable.Stack[Move] = new mutable.Stack[Move]()
+  var moves: mutable.Stack[Move] = new mutable.Stack[Move]()
 
   def startingMoves(): List[Move] = {
-    maxTeam.armies.map { a:Army => new PutUpMax(a) }.toList
+    maxTeam.armies.map { a: Army => new PutUpMax(a) }.toList
   }
 
   def nextMoves(): List[Move] = moves.headOption match {
@@ -79,35 +37,55 @@ class Pairing(val scenarioOrder: List[Scenario], matchupEvaluations: MatchupEval
     case Some(move) => move.nextMoves(gameState)
   }
 
+  def evaluateMoves(verbose: Boolean = false): List[Evaluation] = {
+    val start: Long = System.currentTimeMillis()
+    if (verbose)
+      println("Evaluating moves")
 
-  def evaluateMoves(premoves: List[Move] = Nil, depth: Int = Int.MaxValue): Unit = {
-    val movesToExcludeFromPrint : List[Move] = moves.toList ::: premoves
-    premoves.map { move =>
-      makeMove(move)
-    }
-    for ((move,i) <- nextMoves().zipWithIndex) {
-      makeMove(move)
-      var score = alphaBeta(move, depth, Score.MINIMUM_SCORE, Score.MAXIMUM_SCORE, !move.maximizing)
-      undoMove(move)
-      println("[" + (i+1) + "] " + move.getDescription(gameState) + ", score: " + score + " " + score.getMinMovesDescription(move :: movesToExcludeFromPrint))
-    }
+    val evaluations: List[Evaluation] = nextMoves() map { move => evaluateMove(move) }
+    if (verbose)
+      println("Done evaluating moves - " + Duration(System.currentTimeMillis() - start, TimeUnit.MILLISECONDS).toString())
+    evaluations
   }
 
-  def makeMove(move: Move) {
+  def evaluateMove(move: Move): Evaluation = {
+    val previousMoves: List[Move] = moves.toList
+    val score = if (calculatedMoves.contains(new Evaluation(previousMoves, move))) {
+      calculatedMoves.find(_.equals(new Evaluation(previousMoves, move))).get.score
+    } else {
+      makeMove(move)
+      val newScore = alphaBeta(move, Score.MINIMUM_SCORE, Score.MAXIMUM_SCORE, !move.maximizing, 0)
+      calculatedMoves.add(new Evaluation(previousMoves, move, newScore))
+      undoMove(move)
+      newScore
+    }
+    new Evaluation(previousMoves, move, score)
+  }
+
+  def makeMoves(moves: List[Move]) = {
+    moves.foreach { move =>
+      makeMove(move)
+    }
+    this
+  }
+
+  def makeMove(move: Move) = {
     moves.push(move)
     move.makeMove(gameState)
+    this
   }
 
-  def undoMove(move: Move) {
+  def undoMove(move: Move) = {
     moves.pop()
     move.undoMove(gameState)
+    this
   }
 
-  def alphaBeta(move: Move, depth: Int, alphaInput: Score, betaInput: Score, maximizingPlayer: Boolean) : Score = {
+  def alphaBeta(move: Move, alphaInput: Score, betaInput: Score, maximizingPlayer: Boolean, depth: Int = 0): Score = {
     if (move.nextMoves(gameState).isEmpty) {
       return move.score(gameState, moves.toList.reverse)
     }
-    if (false && depth <= 0 && move.isInstanceOf[ChooseCounterMin]) {
+    if (false && depth >= 0 && move.isInstanceOf[ChooseCounterMin]) {
       // TODO fix, does not work => leads to ~40 points for entire first round
       return move.asInstanceOf[ChooseCounterMin].staticValue(gameState, moves.toList.reverse)
     }
@@ -115,10 +93,10 @@ class Pairing(val scenarioOrder: List[Scenario], matchupEvaluations: MatchupEval
     var beta = betaInput
 
     if (maximizingPlayer) {
-      var v : Score = Score.MINIMUM_SCORE
+      var v: Score = Score.MINIMUM_SCORE
       for (child: Move <- move.nextMoves(gameState)) {
         makeMove(child)
-        v = Score.max(v, alphaBeta(child, depth - 1, alpha, beta, false))
+        v = Score.max(v, alphaBeta(child, alpha, beta, maximizingPlayer = false, depth + 1))
         undoMove(child)
         alpha = Score.max(alpha, v)
         if (beta.compare(alpha) <= 0) {
@@ -127,17 +105,24 @@ class Pairing(val scenarioOrder: List[Scenario], matchupEvaluations: MatchupEval
       }
       return v
     } else {
-      var v : Score = Score.MAXIMUM_SCORE
+      var v: Score = Score.MAXIMUM_SCORE
+      val childScores = new mutable.MutableList[(Move, Score)]()
       for (child: Move <- move.nextMoves(gameState)) {
         makeMove(child)
-        v = Score.min(v, alphaBeta(child, depth - 1, alpha, beta, true))
+        val childScore: Score = alphaBeta(child, alpha, beta, maximizingPlayer = true, depth + 1)
+        childScores += Pair(child, childScore)
+        v = Score.min(v, childScore)
         undoMove(child)
         beta = Score.min(beta, v)
-        if (beta.compare(alpha) <= 0) {
+        if (depth > 0 && beta.compare(alpha) <= 0) {
           return v
         }
       }
-      return v
+      if (depth == 0) {
+        new Score(v.minScore, v.minScore, 1, v.moves, childScores.toList)
+      } else {
+        v
+      }
     }
   }
 
@@ -145,7 +130,7 @@ class Pairing(val scenarioOrder: List[Scenario], matchupEvaluations: MatchupEval
 
 class Army(val name: String) extends Ordered[Army] {
   override def equals(other: Any) = other match {
-    case that:Army => that.name.equals(name)
+    case that: Army => that.name.equals(name)
     case _ => false
   }
 
@@ -158,7 +143,27 @@ class Army(val name: String) extends Ordered[Army] {
   override def toString = name
 }
 
-class Team(val name:String, val armies: List[Army], val scoreArray: Array[Array[Int]]) {
+class Team(val name: String, val armies: List[Army], val scoreArray: Array[Array[Int]]) {
   override def toString = name
 }
+
+class Evaluation(val previousMoves: List[Move], val move: Move, val score: Score = null) {
+  override def toString = move + ":" + score
+
+  override def hashCode(): Int = {
+    val state = Seq(previousMoves, move)
+    state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+  }
+
+  def canEqual(other: Any): Boolean = other.isInstanceOf[Evaluation]
+
+  override def equals(other: Any): Boolean = other match {
+    case that: Evaluation =>
+      (that canEqual this) &&
+        previousMoves.equals(that.previousMoves) &&
+        move.equals(that.move)
+    case _ => false
+  }
+}
+
 

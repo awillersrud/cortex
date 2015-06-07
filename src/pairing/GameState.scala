@@ -4,7 +4,7 @@ import scala.collection.mutable
 import org.junit.Assert._
 import org.hamcrest.CoreMatchers._
 
-class GameState(val scenarioOrder: List[Scenario], matchupEvaluations: MatchupEvalauations) {
+class GameState(val scenarioOrder: List[Scenario], matchupEvaluations: MatchupEvaluations) {
 
   val maxTeam = matchupEvaluations.maxTeam
   val minTeam = matchupEvaluations.minTeam

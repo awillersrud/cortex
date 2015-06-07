@@ -11,21 +11,21 @@ class GameStateTest {
 
   @Test
   def testInitialArmiesInHand(): Unit = {
-    val gameState: GameState = new GameState(Scenario.battlelineFirst, MatchupEvalauations.fromScoreArray(bskTeam, hyms, scoreArrayHyms))
+    val gameState: GameState = new GameState(Scenario.battlelineFirst, MatchupEvaluations.fromScoreArray(bskTeam, hyms, scoreArrayHyms))
     assertThat(gameState.minArmiesInHand.size, equalTo(4))
     assertThat(gameState.minArmiesInHand.toList, equalTo(hyms.armies.sorted))
   }
 
   @Test
   def testIsLastRound_first_round_of_4(): Unit = {
-    val gameState: GameState = new GameState(Scenario.battlelineFirst, MatchupEvalauations.fromScoreArray(bskTeam, hyms, scoreArrayHyms))
+    val gameState: GameState = new GameState(Scenario.battlelineFirst, MatchupEvaluations.fromScoreArray(bskTeam, hyms, scoreArrayHyms))
     gameState.round += 1
     assertTrue(gameState.isLastRound)
   }
 
   @Test
   def testIsLastRound_second_round_of_4_fails(): Unit = {
-    val gameState: GameState = new GameState(Scenario.battlelineFirst, MatchupEvalauations.fromScoreArray(bskTeam, hyms, scoreArrayHyms))
+    val gameState: GameState = new GameState(Scenario.battlelineFirst, MatchupEvaluations.fromScoreArray(bskTeam, hyms, scoreArrayHyms))
     gameState.round += 2
     try {
       gameState.isLastRound
@@ -37,14 +37,14 @@ class GameStateTest {
 
   @Test
   def testIsLastRound_first_round_of_6_is_not(): Unit = {
-    val gameState: GameState = new GameState(Scenario.battlelineFirst, MatchupEvalauations.fromScoreArray(etcNor6, stefleifs6, scoreArraystefleifs6))
+    val gameState: GameState = new GameState(Scenario.battlelineFirst, MatchupEvaluations.fromScoreArray(etcNor6, stefleifs6, scoreArraystefleifs6))
     gameState.round += 1
     assertFalse(gameState.isLastRound)
   }
 
   @Test
   def testRemoveAddKeepsOrdering(): Unit = {
-    val gameState: GameState = new GameState(Scenario.battlelineFirst, MatchupEvalauations.fromScoreArray(bskTeam, hyms, scoreArrayHyms))
+    val gameState: GameState = new GameState(Scenario.battlelineFirst, MatchupEvaluations.fromScoreArray(bskTeam, hyms, scoreArrayHyms))
     val maxArmy: Army = new Army("Asbjørn")
     gameState.removeMaxArmyFromHand(maxArmy)
     gameState.addMaxArmyToHand(maxArmy)
@@ -53,7 +53,7 @@ class GameStateTest {
 
   @Test
   def testAddNonMaxArmyToMaxHand_fails(): Unit = {
-    val gameState: GameState = new GameState(Scenario.battlelineFirst, MatchupEvalauations.fromScoreArray(bskTeam, hyms, scoreArrayHyms))
+    val gameState: GameState = new GameState(Scenario.battlelineFirst, MatchupEvaluations.fromScoreArray(bskTeam, hyms, scoreArrayHyms))
     try {
       gameState.addMaxArmyToHand(new Army("unknown"))
       fail("Expected exception")
@@ -64,7 +64,7 @@ class GameStateTest {
 
   @Test
   def testAddNonMinArmyToMaxHand_fails(): Unit = {
-    val gameState: GameState = new GameState(Scenario.battlelineFirst, MatchupEvalauations.fromScoreArray(bskTeam, hyms, scoreArrayHyms))
+    val gameState: GameState = new GameState(Scenario.battlelineFirst, MatchupEvaluations.fromScoreArray(bskTeam, hyms, scoreArrayHyms))
     try {
       gameState.addMinArmyToHand(new Army("unknown"))
       fail("Expected exception")
@@ -75,7 +75,7 @@ class GameStateTest {
 
   @Test
   def testAddExistingMinArmyToHand_fails(): Unit = {
-    val gameState: GameState = new GameState(Scenario.battlelineFirst, MatchupEvalauations.fromScoreArray(bskTeam, hyms, scoreArrayHyms))
+    val gameState: GameState = new GameState(Scenario.battlelineFirst, MatchupEvaluations.fromScoreArray(bskTeam, hyms, scoreArrayHyms))
     try {
       gameState.addMaxArmyToHand(new Army("Amund"))
       fail("Expected exception")
@@ -86,7 +86,7 @@ class GameStateTest {
 
   @Test
   def testAddExistingMaxArmyToHand_fails(): Unit = {
-    val gameState: GameState = new GameState(Scenario.battlelineFirst, MatchupEvalauations.fromScoreArray(bskTeam, hyms, scoreArrayHyms))
+    val gameState: GameState = new GameState(Scenario.battlelineFirst, MatchupEvaluations.fromScoreArray(bskTeam, hyms, scoreArrayHyms))
     try {
       gameState.addMaxArmyToHand(new Army("Amund"))
       fail("Expected exception")
@@ -97,7 +97,7 @@ class GameStateTest {
 
   @Test
   def testScoreMatchups(): Unit = {
-    val gameState: GameState = new GameState(Scenario.battlelineFirst, MatchupEvalauations.fromScoreArray(bskTeam, stefleifs, scoreArraystefleifs))
+    val gameState: GameState = new GameState(Scenario.battlelineFirst, MatchupEvaluations.fromScoreArray(bskTeam, stefleifs, scoreArraystefleifs))
     assertThat(gameState.scoreChosenMatchups(Nil).minScore, equalTo(0))
 
     addMatchup(gameState, new Army("Martin"), new Army("Johan EM"))

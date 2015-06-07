@@ -12,6 +12,12 @@ abstract class Move() {
   def makeMove(gameState: GameState)
   def undoMove(gameState: GameState)
 
+  def choice : String
+
+  def choiceDescription : String
+
+  override def toString = choiceDescription + " " + choice
+
   def maximizing : Boolean
 
   def makeMoveAndVerify(gameState: GameState): Unit = {
@@ -36,6 +42,10 @@ abstract class Move() {
     assertThat("Unexpected number of armies in max hand: " + getClass, gameState.maxArmiesInHand.size, equalTo(expectedNumberOfMaxArmiesInHandPostMove(gameState)))
     assertThat("Unexpected number of armies in min hand: " + getClass, gameState.minArmiesInHand.size, equalTo(expectedNumberOfMinArmiesInHandPostMove(gameState)))
   }
+
+  def equals(other: Any): Boolean
+
+  override def hashCode = toString.hashCode
 
   def expectedNumberOfMaxArmiesInHandPreMove(gameState: GameState) : Int
   def expectedNumberOfMinArmiesInHandPreMove(gameState: GameState) : Int
