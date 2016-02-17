@@ -1,5 +1,7 @@
 package pairing
 
+import java.util.Date
+
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import pairing.TestData._
@@ -52,7 +54,7 @@ class PairingTest {
         //        new PutUpMax(new Army("Jarle")) ::
         //        new PutUpMin(new Army("Julian DW")) ::
         Nil
-      ).evaluateMoves()
+    ).evaluateMoves()
   }
 
   @Test
@@ -67,71 +69,115 @@ class PairingTest {
     assert((testArmy :: testArmy2 :: Nil).hashCode() == (testArmy :: testArmy2 :: Nil).hashCode())
   }
 
+  val lagkamp5Moves: List[Move] =
+  //    Runde 1
+    new PutUpMax(new Army("Amund SK")) ::
+      new PutUpMin(new Army("VC")) ::
+      new CounterMax(new Army("Jarle HE"), new Army("Asbjørn DE")) ::
+      new CounterMin(new Army("DoC"), new Army("EM")) ::
+      new ChooseCounterMax(new Army("DoC"), new Army("EM")) ::
+      new ChooseCounterMin(new Army("Jarle HE"), new Army("Asbjørn DE")) ::
+      //    Runde 2
+      new PutUpMax(new Army("Øystein DW")) ::
+      new PutUpMin(new Army("SK")) ::
+      new CounterMax(new Army("Martin LZ"), new Army("Stian WE")) ::
+      new CounterMin(new Army("OK"), new Army("BR")) ::
+      new ChooseCounterMax(new Army("BR"), new Army("OK")) ::
+      new ChooseCounterMin(new Army("Stian WE"), new Army("Martin LZ")) ::
+      //    Runde 3
+      new PutUpMax(new Army("Christian TK")) ::
+      new PutUpMin(new Army("OK")) ::
+      new CounterMax(new Army("Martin LZ"), new Army("Asbjørn DE")) ::
+      new CounterMin(new Army("BM"), new Army("EM")) ::
+      new ChooseCounterMax(new Army("BM"), new Army("EM")) ::
+      new ChooseCounterMin(new Army("Martin LZ"), new Army("Asbjørn DE")) ::
+      Nil
+
+  val lagkamp5ExpectedScores = Map[Move, Int](
+    //      new CounterMax(new Army("Jarle HE"), new Army("Asbjørn DE")) -> 86,
+    //      new CounterMin(new Army("DoC"), new Army("EM")) -> 87,
+    new ChooseCounterMax(new Army("DoC"), new Army("EM")) -> 87,
+    new ChooseCounterMin(new Army("Jarle HE"), new Army("Asbjørn DE")) -> 90,
+    new PutUpMax(new Army("Øystein DW")) -> 88,
+    new PutUpMin(new Army("SK")) -> 88,
+    new CounterMax(new Army("Martin LZ"), new Army("Stian WE")) -> 87,
+    new CounterMin(new Army("OK"), new Army("BR")) -> 88,
+    new ChooseCounterMax(new Army("BR"), new Army("OK")) -> 88,
+    new ChooseCounterMin(new Army("Stian WE"), new Army("Martin LZ")) -> 88,
+    new PutUpMax(new Army("Christian TK")) -> 85,
+    new PutUpMin(new Army("OK")) -> 85,
+    new CounterMax(new Army("Martin LZ"), new Army("Asbjørn DE")) -> 85,
+    new CounterMin(new Army("BM"), new Army("EM")) -> 90,
+    new ChooseCounterMax(new Army("BM"), new Army("EM")) -> 90,
+    new ChooseCounterMin(new Army("Martin LZ"), new Army("Asbjørn DE")) -> 91
+  )
+
   @Test
   def testPairingLagkamp5(): Unit = {
-    val moves: List[Move] =
-    //    Runde 1
-      new PutUpMax(new Army("Amund SK")) ::
-        new PutUpMin(new Army("VC")) ::
-        new CounterMax(new Army("Jarle HE"), new Army("Asbjørn DE")) ::
-        new CounterMin(new Army("DoC"), new Army("EM")) ::
-        new ChooseCounterMax(new Army("DoC"), new Army("EM")) ::
-        new ChooseCounterMin(new Army("Jarle HE"), new Army("Asbjørn DE")) ::
-        //    Runde 2
-        new PutUpMax(new Army("Øystein DW")) ::
-        new PutUpMin(new Army("SK")) ::
-        new CounterMax(new Army("Martin LZ"), new Army("Stian WE")) ::
-        new CounterMin(new Army("OK"), new Army("BR")) ::
-        new ChooseCounterMax(new Army("BR"), new Army("OK")) ::
-        new ChooseCounterMin(new Army("Stian WE"), new Army("Martin LZ")) ::
-        //    Runde 3
-        new PutUpMax(new Army("Christian TK")) ::
-        new PutUpMin(new Army("OK")) ::
-        new CounterMax(new Army("Martin LZ"), new Army("Asbjørn DE")) ::
-        new CounterMin(new Army("BM"), new Army("EM")) ::
-        new ChooseCounterMax(new Army("BM"), new Army("EM")) ::
-        new ChooseCounterMin(new Army("Martin LZ"), new Army("Asbjørn DE")) ::
-        Nil
-
-    var previousMinScore = Integer.MAX_VALUE
-    var previousMaxScore = 0
-
-    val expectedScores = Map[Move, Int](
-//      new CounterMax(new Army("Jarle HE"), new Army("Asbjørn DE")) -> 86,
-//      new CounterMin(new Army("DoC"), new Army("EM")) -> 87,
-      new ChooseCounterMax(new Army("DoC"), new Army("EM")) -> 87,
-      new ChooseCounterMin(new Army("Jarle HE"), new Army("Asbjørn DE")) -> 90,
-      new PutUpMax(new Army("Øystein DW")) -> 88,
-      new PutUpMin(new Army("SK")) -> 88,
-      new CounterMax(new Army("Martin LZ"), new Army("Stian WE")) -> 87,
-      new CounterMin(new Army("OK"), new Army("BR")) -> 88,
-      new ChooseCounterMax(new Army("BR"), new Army("OK")) -> 88,
-      new ChooseCounterMin(new Army("Stian WE"), new Army("Martin LZ")) -> 88,
-      new PutUpMax(new Army("Christian TK")) -> 85,
-      new PutUpMin(new Army("OK")) -> 85,
-      new CounterMax(new Army("Martin LZ"), new Army("Asbjørn DE")) -> 85,
-      new CounterMin(new Army("BM"), new Army("EM")) -> 90,
-      new ChooseCounterMax(new Army("BM"), new Army("EM")) -> 90,
-      new ChooseCounterMin(new Army("Martin LZ"), new Army("Asbjørn DE")) -> 91
-    )
-
-    println("Making moves: " + moves)
     val lagkamp: Pairing = Treningskamper.lagkamp5
+
+    verifyExpectedScores(lagkamp, expectedScores = lagkamp5ExpectedScores)
+  }
+
+  @Test
+  def testPairingLagkamp5InverseInverse(): Unit = {
+    val lagkamp: Pairing = Treningskamper.lagkamp5.inverse().inverse()
+
+    verifyExpectedScores(lagkamp, expectedScores = lagkamp5ExpectedScores)
+  }
+
+  def verifyExpectedScores(lagkamp: Pairing, moves: List[Move] = lagkamp5Moves, expectedScores: Map[Move, Int]): Unit = {
     for (move <- moves) {
-      lagkamp.makeMove(move)
-      println(lagkamp.gameState.chosenMatchups)
-      lagkamp.undoMove(move)
       if (expectedScores.contains(move)) {
         val evaluation: Evaluation = lagkamp.evaluateMove(move)
         val expectedScore: Int = expectedScores.get(move).get
         val actualScore: Int = evaluation.score.minScore
-        assertEquals("Wrong score for: " + move, expectedScore, actualScore)
+        println("Verifying score for " + lagkamp.describe(move) + ":" + expectedScore)
+        assertEquals("Wrong score for: " + lagkamp.describe(move), expectedScore, actualScore)
       }
-      println("Making move: " + move)
       lagkamp.makeMove(move)
     }
-
   }
 
+  @Test
+  def testPairingLagkamp5Inverse() {
+    val lagkamp: Pairing = Treningskamper.lagkamp5
+
+    val inverse: Pairing = lagkamp.inverse()
+
+    val expectedScores = Map[Move, Int](
+      new ChooseCounterMax(new Army("Martin LZ"), new Army("Asbjørn DE")) -> 69,
+      new ChooseCounterMin(new Army("BM"), new Army("EM")) -> 69
+    )
+
+    verifyExpectedScores(inverse, Pairing.convertToInverseMoves(lagkamp5Moves), expectedScores)
+  }
+
+  @Test
+  def egfPrinterTest(): Unit = {
+    val pairing = Treningskamper.lagkamp5
+    pairing.makeMoves(lagkamp5Moves.dropRight(4))
+    new EgfPrinter().printEgfMove(pairing)
+  }
+
+  @Test
+  def evaluateFirstPutUp() : Unit = {
+
+    val pairing = EtcKamper2015.belgium
+    for (maxArmy <- pairing.maxTeam.armies) {
+      for (minArmy <- pairing.minTeam.armies) {
+        val putUpMax: PutUpMax = new PutUpMax(maxArmy)
+        val putUpMin: PutUpMin = new PutUpMin(minArmy)
+        pairing.makeMove(putUpMax)
+        pairing.makeMove(putUpMin)
+        val evaluations: List[Evaluation] = pairing.evaluateMoves().sortBy(_.score)(Ordering[Score]).reverse
+
+        println(putUpMax.choice + " - " + putUpMin.choice + " [" + evaluations.head.score.minScore + "] - " + new Date())
+
+        pairing.undoMove(putUpMin)
+        pairing.undoMove(putUpMax)
+      }
+    }
+  }
 
 }

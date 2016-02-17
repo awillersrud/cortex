@@ -276,7 +276,7 @@ object TestData {
       Array(0, 0, 0, 0, 0, 0)
     )
 
-    val pairing = new Pairing(Scenario.meetingEngagementFirst3, MatchupEvaluations.fromScoreArray(etcNor6, teamAwesome, battleline, bloodAndGlory, kingOfTheHill, meetingEngagement))
+    val pairing = new Pairing(Scenario.meetingEngagementFirst, MatchupEvaluations.fromScoreArray(etcNor6, teamAwesome, battleline, bloodAndGlory, kingOfTheHill, meetingEngagement))
     pairing
   }
 
@@ -338,7 +338,7 @@ object TestData {
       Array(1, 0, 0, 0, 0, 0)
     )
 
-    val pairing = new Pairing(Scenario.kingOfTheHillFirst3, MatchupEvaluations.fromScoreArray(etcNor6, teamAwesome, battleline, bloodAndGlory, kingOfTheHill, meetingEngagement))
+    val pairing = new Pairing(Scenario.kingOfTheHillFirst, MatchupEvaluations.fromScoreArray(etcNor6, teamAwesome, battleline, bloodAndGlory, kingOfTheHill, meetingEngagement))
     pairing
   }
 

@@ -25,7 +25,7 @@ class CounterMin(val counters: (Army, Army)) extends Move {
 
   def getDescription(gameState: GameState) = gameState.minTeam.name + " counters: (" + counters._1.name + "," + counters._2.name + ")"
 
-  override def choiceDescription = "Min counters"
+  override def choiceDescription = "counters"
 
   override def choice = counters._1 + "/" + counters._2
 

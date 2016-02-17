@@ -61,7 +61,7 @@ class ChooseCounterMax(val chosenMinArmy: Army, val nonChosenMinArmy: Army) exte
     case _ => false
   }
 
-  override def choiceDescription = "Max chooses"
+  override def choiceDescription = "chooses"
 
   override def choice = chosenMinArmy.name
 

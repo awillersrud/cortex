@@ -64,7 +64,7 @@ class ChooseCounterMin(val chosenMaxArmy: Army, val nonChosenMaxArmy: Army) exte
       chosenMaxArmy + " vs " + gameState.minArmyPutUp.get + "(" + chosenMatchupScore(gameState) + ") and " + nonChosen
   }
 
-  override def choiceDescription = "Min chooses"
+  override def choiceDescription = "chooses"
 
   override def choice = chosenMaxArmy.name
 

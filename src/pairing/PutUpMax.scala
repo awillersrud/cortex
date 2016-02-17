@@ -24,7 +24,7 @@ class PutUpMax(val army: Army) extends Move {
     gameState.round -= 1
   }
 
-  override def choiceDescription = "Max put up"
+  override def choiceDescription = "put up"
   override def choice = army.name
 
   override def equals(other: Any) = other match {

@@ -54,12 +54,10 @@ class EgfPrinter {
       children match {
         case Nil =>
           Console.println("t \"\" " + outcome.toString)
-        case x :: xs =>
+        case _ =>
           Console.println("p \"\" " + player + " " + informationSet.toString + " " + (if (outcome == null) "0" else outcome.toString))
           children.foreach(_.print())
-
       }
-
     }
   }
 

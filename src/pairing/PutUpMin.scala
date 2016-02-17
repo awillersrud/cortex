@@ -24,7 +24,7 @@ class PutUpMin(val army: Army) extends Move {
 
   def getDescription(gameState: GameState) = gameState.minTeam.name + " put up: " + army.name
 
-  override def choiceDescription = "Min put up"
+  override def choiceDescription = "put up"
   override def choice = army.name
 
   def maximizing : Boolean = false

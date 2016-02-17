@@ -10,13 +10,10 @@ object Scenario {
 
   val meetingEngagementFirst:List[Scenario] = MEETING_ENGAGEMENT :: BLOOD_AND_GLORY :: KING_OF_THE_HILL :: BATTLELINE :: Nil
 
-  val meetingEngagementFirst3:List[Scenario] = MEETING_ENGAGEMENT :: BLOOD_AND_GLORY :: KING_OF_THE_HILL :: Nil
-
   val bloodAndGloryFirst:List[Scenario] = BLOOD_AND_GLORY :: KING_OF_THE_HILL :: BATTLELINE :: MEETING_ENGAGEMENT :: Nil
 
   val kingOfTheHillFirst:List[Scenario] = KING_OF_THE_HILL :: BATTLELINE :: MEETING_ENGAGEMENT :: BLOOD_AND_GLORY :: Nil
 
-  val kingOfTheHillFirst3:List[Scenario] = KING_OF_THE_HILL :: MEETING_ENGAGEMENT :: BLOOD_AND_GLORY :: Nil
 }
 case class Scenario(name:String) {
   override def toString = name

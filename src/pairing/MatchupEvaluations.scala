@@ -41,6 +41,18 @@ object MatchupEvaluations {
 }
 
 class MatchupEvaluations(val maxTeam:Team, val minTeam:Team) {
+  def inverse(): MatchupEvaluations = {
+    val inverse: MatchupEvaluations = new MatchupEvaluations(minTeam, maxTeam)
+
+    def inverseEvalArray(evaluationArray: EvaluationArray, scoreFunction: Int => Int): EvaluationArray = {
+      evaluationArray.map(matchupAndScore => Tuple2(new Matchup(matchupAndScore._1.minArmy, matchupAndScore._1.maxArmy), scoreFunction(matchupAndScore._2)))
+    }
+    inverse.battleLine = inverseEvalArray(battleLine, { score => 20 - score })
+    inverse.scenarioEvaluations = scenarioEvaluations.map(scenarioAndEvalArray => Tuple2(scenarioAndEvalArray._1, inverseEvalArray(scenarioAndEvalArray._2, { score => -score })))
+
+    inverse
+  }
+
 
   var battleLine:mutable.Map[Matchup, Int] = new mutable.HashMap[Matchup, Int]()
   var scenarioEvaluations:mutable.Map[Scenario, EvaluationArray] = new mutable.HashMap[Scenario, EvaluationArray]()

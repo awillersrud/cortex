@@ -9,9 +9,28 @@ object Pairing {
   def combinations(armies: Iterable[Army]): Iterable[(Army, Army)] = {
     for (a1 <- armies; a2 <- armies if a1.name < a2.name) yield (a1, a2)
   }
+
+  def convertToInverseMoves(moves:List[Move]) : List[Move] = moves match {
+    case (m1:PutUpMax) :: (m2:PutUpMin) :: xs =>
+      new PutUpMax(m2.army) :: new PutUpMin(m1.army) :: convertToInverseMoves(xs)
+    case (m1:CounterMax) :: (m2:CounterMin) :: xs =>
+      new CounterMax(m2.counters) :: new CounterMin(m1.counters) :: convertToInverseMoves(xs)
+    case (m1:ChooseCounterMax) :: (m2:ChooseCounterMin) :: xs =>
+      new ChooseCounterMax(m2.chosenMaxArmy, m2.nonChosenMaxArmy) :: new ChooseCounterMin(m1.chosenMinArmy, m1.nonChosenMinArmy) :: convertToInverseMoves(xs)
+    case _ => Nil
+  }
 }
 
 class Pairing(val scenarioOrder: List[Scenario], val matchupEvaluations: MatchupEvaluations) {
+
+  def inverse(): Pairing = {
+    val inverse: Pairing = new Pairing(scenarioOrder, matchupEvaluations.inverse())
+
+    Pairing.convertToInverseMoves(moves.toList.reverse).foreach(move => inverse.makeMove(move))
+
+    inverse
+  }
+
   def remainingMoves = {
     val requiredRounds : Int = (gameState.numberOfArmies - 2) / 2
     val requiredMoves = requiredRounds * 6
@@ -60,6 +79,14 @@ class Pairing(val scenarioOrder: List[Scenario], val matchupEvaluations: Matchup
       newScore
     }
     new Evaluation(previousMoves, move, score)
+  }
+
+  def getTeam(move: Move): Team = {
+    if (move.maximizing) maxTeam else minTeam
+  }
+
+  def describe(move: Move): String = {
+    getTeam(move) + " " + move.toString
   }
 
   def makeMoves(moves: List[Move]) = {

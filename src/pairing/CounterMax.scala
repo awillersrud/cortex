@@ -27,7 +27,7 @@ class CounterMax(val counters: (Army, Army)) extends Move {
 
   def getDescription(gameState: GameState) = gameState.maxTeam + " counters: (" + counters._1.name + "," + counters._2.name + ")"
 
-  override def choiceDescription = "Max counters"
+  override def choiceDescription = "counters"
 
   override def choice = counters._1 + "/" + counters._2
 
