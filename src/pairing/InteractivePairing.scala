@@ -1,8 +1,9 @@
 package pairing
 
+import java.io.File
+
 import scala.collection.mutable
 import scala.io.StdIn
-import scala.util.Random
 
 class InteractivePairing(pairing: Pairing) {
 
@@ -13,21 +14,22 @@ class InteractivePairing(pairing: Pairing) {
   }
 
   object State {
-    var calculateScore = false
-    var maxMoveFilter: List[Evaluation] => List[Evaluation] = noFilter
-    var deepCalculations = false
+    var maxNumberOfContinuations: Int = 4
+
     var skipPrintNextCommands = false
   }
 
-  val noFilter: (List[Evaluation]) => List[Evaluation] = { ingoingList => ingoingList }
-
   def run() {
+
+    pairing.matchupEvaluations.print()
 
     while (true) {
 
       val nextMoves: List[Move] = pairing.nextMoves()
       if (nextMoves == Nil) {
-        printMatchups(randomizeTables = true)
+        pairing.gameState.printMatchups()
+      } else {
+        pairing.gameState.printGameState()
       }
 
       val commands: List[Command] = createNextCommands(nextMoves)
@@ -37,15 +39,11 @@ class InteractivePairing(pairing: Pairing) {
       } else {
         if (nextMoves != Nil) {
           val nextMove: Move = nextMoves.head
-          println("Round: " + pairing.gameState.round)
+//          println("Round: " + pairing.gameState.round)
 
           println(pairing.getTeam(nextMove) + " " + nextMove.choiceDescription + ":")
         }
-        commands.filter(!_.hidden).foreach(c => println(c.description))
-      }
-      if (State.deepCalculations && nextMoves != Nil && nextMoves.head.maximizing) {
-        val inverse: Pairing = pairing.inverse()
-        println("Inverse:\t" + mkString(inverse, sortMaximizing(inverse.evaluateMoves())))
+        commands.filter(!_.hidden).foreach(c => c.print())
       }
       Console.println("Choose action: ")
       val input: String = StdIn.readLine()
@@ -61,101 +59,45 @@ class InteractivePairing(pairing: Pairing) {
     }
   }
 
-  def printMatchups(randomizeTables : Boolean = false): Unit = {
-    Console.println("#Matchups#")
-
-    val tableNumbers : Seq[Int] = Random.shuffle(1 to pairing.maxTeam.armies.size)
-
-    var accumulatedScore = 0
-    val matchupRows: List[List[String]] = (for (((matchup:Matchup, scenario), index) <- pairing.gameState.chosenMatchups.reverse.zipWithIndex)
-      yield {
-        val matchupScore: Int = pairing.gameState.scoreMatchup(matchup.maxArmy, matchup.minArmy, scenario)
-        accumulatedScore += matchupScore
-        val withoutTableNumber = matchup.maxArmy.toString :: matchup.minArmy.toString :: matchupScore.toString :: scenario.name :: Nil
-        if (randomizeTables) withoutTableNumber ::: tableNumbers(index).toString ::  Nil else withoutTableNumber
-      }).toList
-
-    val withoutTableNumbers: List[String] = pairing.gameState.maxTeam.toString :: pairing.gameState.minTeam.toString :: "Score" :: "Scenario" :: Nil
-    val headers : List[String] = if (randomizeTables) withoutTableNumbers ::: "Table number" :: Nil else withoutTableNumbers
-
-    println(util.Tabulator.format(headers :: matchupRows))
-
-    Console.println("Score: " + accumulatedScore)
-    Console.println("#Matchups#")
-    Console.println()
-  }
-
   def createNextCommands(moves: List[Move]): List[Command] = {
     val makeMoveCommands: List[Command] =
       if (moves.isEmpty)
         Nil
-      else if (State.calculateScore && pairing.moves.size > 1) {
+      else {
         val maximizing = moves.head.maximizing
 
         val evaluations = moves.map(move => pairing.evaluateMove(move))
         val potentialMoves =
-          if (maximizing) State.maxMoveFilter(sortMaximizing(evaluations))
+          if (maximizing) sortMaximizing(evaluations)
           else sortMinimizing(evaluations)
         for ((eval, i) <- potentialMoves.zipWithIndex)
-          yield createMakeMoveCommand(i + 1, eval.move, Some(eval.score))
-
-      } else {
-        for ((move, i) <- pairing.nextMoves().zipWithIndex)
-          yield createMakeMoveCommand(i + 1, move)
+          yield createMakeMoveCommand(i + 1, eval.move, eval.score, potentialMoves.head.score)
       }
 
 
     val commands = new mutable.MutableList[Command]()
     commands ++= makeMoveCommands
     commands += new Command("\\?", "[?] Show commands", input => {
-      commands.filter(_.hidden).foreach(c => println(c.description))
+      commands.filter(_.hidden).foreach(c => c.print())
       State.skipPrintNextCommands = true
     }, hidden = true)
 
-    commands += new Command("f[1-9]*", "[fN] Show only N best moves ", input => {
-      val n = if (input.length > 1) input.drop(1).toInt else 6
-      State.maxMoveFilter = { inputList: List[Evaluation] => inputList.take(n) }
-    }, hidden = true)
-
-    commands += new Command("m", "[m] Print matchups ", input => {
-      printMatchups()
-    }, hidden = true)
-
-    commands += new Command("t", "[t] Print remaining matchup table", input => {
-      val remaingMaxArmies = pairing.maxTeam.armies.filterNot(a => pairing.gameState.chosenMatchups.contains((m:Matchup,s:Scenario) => m.maxArmy.equals(a)))
-      val remainingMinArmies = pairing.minTeam.armies.filterNot(a => pairing.gameState.chosenMatchups.contains((m:Matchup,s:Scenario) => m.minArmy.equals(a)))
-      val remainingScenarios = pairing.scenarioOrder.filterNot(s => pairing.gameState.chosenMatchups.map(_._2).toSet.contains(s))
-      println("TODO: REMAINING MATCHUP TABLE") // TODO
-    }, hidden = true)
-
-    if (pairing.remainingMoves == 4) {
+    if (pairing.moves.nonEmpty && pairing.moves.head.maximizing) {
       commands += new Command("g", "[g] Print gambit egf file", input => {
-        new EgfPrinter().printEgfMove(pairing)
+        val egfFile: File = new EgfPrinter().printEgfMove(pairing)
+        Console.println("Saved game to gambit file: " + egfFile.getName)
       })
     }
     if (pairing.moves.nonEmpty) {
       commands += new Command("u", "[u] Undo previous move", input => {
         pairing.undoMove(pairing.moves.head)
-        State.maxMoveFilter = noFilter
-      }, hidden = true)
+      }, hidden = false)
     }
-    if (State.calculateScore) {
-      commands += new Command("c", "[c] Turn off score calculation", input => {
-        State.calculateScore = false
-      }, hidden = true)
-      if (State.deepCalculations) {
-        commands += new Command("cc", "[cc] Turn off score continuations", input => {
-          State.deepCalculations = false
-        }, hidden = true)
-      } else {
-        commands += new Command("cc", "[cc] Turn on score continuations", input => {
-          State.deepCalculations = true
-        }, hidden = true)
-      }
-    } else {
-      commands += new Command("c", "[c] Turn on score calculation", input => {
-        State.calculateScore = true
-      }, hidden = true)
+    if (pairing.moves.isEmpty) {
+      val startingTeam = if (pairing.maxTeamStarts) pairing.maxTeam else pairing.minTeam
+      commands += new Command("t", "[t] Toggle starting team (currently " + startingTeam.name + ")", input => {
+        pairing.maxTeamStarts = !pairing.maxTeamStarts
+      }, hidden = false)
     }
     commands.toList
   }
@@ -175,42 +117,45 @@ class InteractivePairing(pairing: Pairing) {
     list.sortBy(_.score)(Ordering[Score])
   }
 
-  def createMakeMoveCommand(index: Int, move: Move, scoreOption: Option[Score] = None) = {
-    val action: String => Unit = { input: String =>
-      Console.println("Performing move [" + index + "] " + pairing.describe(move))
-      pairing.makeMove(move)
-      State.maxMoveFilter = noFilter
-
-      if (pairing.moves.nonEmpty && pairing.moves.size % 6 == 0) {
-        printMatchups()
-      }
-    }
-
-    val description = scoreOption match {
-      case Some(score) => "[" + index + "] " + move.choice + ", score: " + score
-      case None => "[" + index + "] " + move.choice
-    }
-
-    val continuationDescription =
-      if (State.deepCalculations && move.maximizing) {
-
-        val continuationEvaluations: List[Evaluation] = calculateContinuation(move)
-        "\t\tContinuation:\t" + mkString(pairing, continuationEvaluations)
-
-      } else {
-        ""
-      }
-
-
-    new Command(index.toString, description + continuationDescription, action)
+  def createMakeMoveCommand(index: Int, move: Move, score: Score, minScore: Score) = {
+    new MoveCommand(index, move, score, minScore)
   }
 
-  def mkString(pairing: Pairing, evaluations: List[Evaluation]) = {
-    val move = evaluations.head.move
-    pairing.getTeam(move) + " " + move.choiceDescription + "\t[" + evaluations.map(e => e.move.choice + ":" + e.score).mkString(",\t") + "]"
+  class Command(val inputRegex: String, val description: String, val action: String => Unit, val hidden: Boolean = false) {
+    def print(): Unit = {
+      Console.println(description)
+    }
   }
 
-  class Command(val inputRegex: String, val description: String, val action: String => Unit, val hidden: Boolean = false)
+  class MoveCommand(val index: Int, val move: Move, score: Score, minScore: Score)
+    extends Command(
+      index.toString,
+      "[" + index + "] " + move.choice + ", score: " + score
+      ,
+      { input: String =>
+        Console.println("Performing move [" + index + "] " + pairing.describe(move))
+        pairing.makeMove(move)
+      },
+      hidden = false) {
+
+    override def print(): Unit = {
+      Console.println(description)
+
+      if (minScore.minScore == score.minScore && continuationEvaluations.nonEmpty)
+        Console.println(createContinuationDescription(continuationEvaluations.take(State.maxNumberOfContinuations)))
+    }
+
+    def continuationEvaluations: List[Evaluation] =
+      if (move.maximizing && !move.isInstanceOf[ChooseLastMatchups])
+        calculateContinuation(move)
+      else
+        Nil
+
+    def createContinuationDescription(continuationEvaluations: List[Evaluation]): String =
+      continuationEvaluations.map(e => "\t" + e.move.choice + ":" + e.score).mkString("\n")
+
+  }
+
 
 }
 

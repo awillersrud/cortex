@@ -1,133 +1,167 @@
 package pairing
 
-import scala.collection.mutable
-import org.junit.Assert._
 import org.hamcrest.CoreMatchers._
+import org.junit.Assert._
 
-class GameState(val scenarioOrder: List[Scenario], matchupEvaluations: MatchupEvaluations) {
+import scala.collection.mutable
+
+class GameState(matchupEvaluations: MatchupEvaluations) {
 
   val maxTeam = matchupEvaluations.maxTeam
   val minTeam = matchupEvaluations.minTeam
 
-  def armiesPreRound = numberOfArmies - round * 2 + 2
+  def factionsPreRound = numberOfFactions - round + 1
 
   var round : Int = 0
 
   def isLastRound: Boolean = {
-    val expectedMatchupsDecidedByEndOfThisRound = round * 2 + 2
-    if (expectedMatchupsDecidedByEndOfThisRound > numberOfArmies) {
+    val expectedMatchupsDecidedByEndOfThisRound = round + 1
+    if (expectedMatchupsDecidedByEndOfThisRound > numberOfFactions) {
       throw new IllegalStateException("Round number is too high: " + round)
     }
-    expectedMatchupsDecidedByEndOfThisRound == numberOfArmies
+    expectedMatchupsDecidedByEndOfThisRound == numberOfFactions
   }
 
-  var chosenMatchups : mutable.Stack[(Matchup, Scenario)] = new mutable.Stack()
+  var chosenMatchups : mutable.Stack[Matchup] = new mutable.Stack()
 
-  var maxArmyPutUp : Option[Army] = None
-  var minArmyPutUp : Option[Army] = None
-  var maxArmyCounters : Option[(Army, Army)] = None
-  var minArmyCounters : Option[(Army, Army)] = None
-  var maxArmiesInHand : mutable.MutableList[Army] = mutable.MutableList(maxTeam.armies.toSeq: _*).sorted
-  var minArmiesInHand : mutable.MutableList[Army] = mutable.MutableList(minTeam.armies.toSeq: _*).sorted
+  def team(max: Boolean): Team = if (max) maxTeam else minTeam
 
-  def addMaxArmyToHand(army: Army) {
-    if (maxArmiesInHand.contains(army)) {
-      throw new IllegalArgumentException("Army already in hand: " + army)
-    } else if (!maxTeam.armies.contains(army)) {
-      throw new IllegalArgumentException("Army is not a max team army: " + army)
+  var maxFactionPutUp : Option[Faction] = None
+  var minFactionPutUp : Option[Faction] = None
+  var maxFactionCounters : Option[(Faction, Faction)] = None
+  var minFactionCounters : Option[(Faction, Faction)] = None
+  var maxFactionsInHand : mutable.MutableList[Faction] = mutable.MutableList(maxTeam.factions.toSeq: _*).sorted
+  var minFactionsInHand : mutable.MutableList[Faction] = mutable.MutableList(minTeam.factions.toSeq: _*).sorted
+
+  def factionsInHand(max: Boolean) : mutable.MutableList[Faction] = if (max) maxFactionsInHand else minFactionsInHand
+
+  def setCounters(counters: Option[(Faction, Faction)], max: Boolean): Unit = {
+    if (max) {
+      maxFactionCounters = counters
     } else {
-      maxArmiesInHand += army
-      maxArmiesInHand = maxArmiesInHand.sorted
+      minFactionCounters = counters
     }
   }
 
-  def addMinArmyToHand(army: Army) {
-    if (minArmiesInHand.contains(army)) {
-      throw new IllegalArgumentException("Army already in hand: " + army)
-    } else if (!minTeam.armies.contains(army)) {
-      throw new IllegalArgumentException("Army is not a min team army: " + army)
+  def getCounters(max: Boolean) : Option[(Faction, Faction)] = if (max) maxFactionCounters else minFactionCounters
+
+  def setPutUp(faction: Option[Faction], max: Boolean): Unit = {
+    if (max) {
+      maxFactionPutUp = faction
     } else {
-      minArmiesInHand += army
-      minArmiesInHand = minArmiesInHand.sorted
+      minFactionPutUp = faction
     }
   }
 
-  def removeMaxArmyFromHand(army: Army) {
-    if (!maxArmiesInHand.contains(army)) {
-      throw new IllegalArgumentException("Army not in hand: " + army)
-    } else if (!maxTeam.armies.contains(army)) {
-      throw new IllegalArgumentException("Army is not a max team army: " + army)
+  def getPutUp(max: Boolean): Option[Faction] = if (max) maxFactionPutUp else minFactionPutUp
+
+  def addFactionToHand(faction: Faction, max: Boolean) {
+    if (factionsInHand(max).contains(faction)) {
+      throw new IllegalArgumentException("Faction already in hand: " + faction)
+    } else if (!team(max).factions.contains(faction)) {
+      throw new IllegalArgumentException("Faction is not in correct team(" + team(max) +"): " + faction)
+    } else if (max) {
+      maxFactionsInHand += faction
+      maxFactionsInHand = maxFactionsInHand.sorted
     } else {
-      maxArmiesInHand = maxArmiesInHand.filterNot(_ == army)
+      minFactionsInHand += faction
+      minFactionsInHand = minFactionsInHand.sorted
     }
   }
 
-  def removeMinArmyFromHand(army: Army) {
-    if (!minArmiesInHand.contains(army)) {
-      throw new IllegalArgumentException("Army not in hand: " + army)
-    } else if (!minTeam.armies.contains(army)) {
-      throw new IllegalArgumentException("Army is not a min team army: " + army)
+  def removeFactionFromHand(faction: Faction, max: Boolean) {
+    if (!factionsInHand(max).contains(faction)) {
+      throw new IllegalArgumentException("Faction not in hand: " + faction)
+    } else if (!team(max).factions.contains(faction)) {
+      throw new IllegalArgumentException("Faction is not in correct team(" + team(max) +"): " + faction)
+    } else if (max) {
+      maxFactionsInHand = maxFactionsInHand.filterNot(_ == faction)
     } else {
-      minArmiesInHand = minArmiesInHand.filterNot(_ == army)
+      minFactionsInHand = minFactionsInHand.filterNot(_ == faction)
     }
   }
 
-  def nextScenario : Scenario = scenarioOrder(this.round - 1)
-  def lastScenario : Scenario = scenarioOrder.last
-
-  def addMatchup(matchup: Matchup, scenario: Scenario): Unit = {
-    if (maxArmiesInHand.contains(matchup.maxArmy)) {
-      throw new IllegalStateException("Attempt to add matchup with max army in hand: " + matchup.maxArmy)
+  def addMatchup(matchup: Matchup): Unit = {
+    if (maxFactionsInHand.contains(matchup.maxFaction)) {
+      throw new IllegalStateException("Attempt to add matchup with max faction in hand: " + matchup.maxFaction)
     }
-    if (minArmiesInHand.contains(matchup.minArmy)) {
-      throw new IllegalStateException("Attempt to add matchup with min army in hand: " + matchup.minArmy)
+    if (minFactionsInHand.contains(matchup.minFaction)) {
+      throw new IllegalStateException("Attempt to add matchup with min faction in hand: " + matchup.minFaction)
     }
-    if (!maxTeam.armies.contains(matchup.maxArmy)) {
-      throw new IllegalArgumentException("First army in matchup is not max army: " + matchup.maxArmy)
-    } else if (!minTeam.armies.contains(matchup.minArmy)) {
-      throw new IllegalArgumentException("Second army in matchup is not min army: " + matchup.minArmy)
+    if (!maxTeam.factions.contains(matchup.maxFaction)) {
+      throw new IllegalArgumentException("First faction in matchup is not max faction: " + matchup.maxFaction)
+    } else if (!minTeam.factions.contains(matchup.minFaction)) {
+      throw new IllegalArgumentException("Second faction in matchup is not min faction: " + matchup.minFaction)
     }
-    chosenMatchups.push((new Matchup(matchup.maxArmy, matchup.minArmy), scenario))
+    chosenMatchups.push(new Matchup(matchup.maxFaction, matchup.minFaction))
   }
 
   def removeMatchup(): Matchup = {
-    chosenMatchups.pop()._1
+    chosenMatchups.pop()
   }
 
   def scoreChosenMatchups(minMoves: List[Move]) : Score = {
     var score : Int = 0
-    for (((matchup,scenario), i) <- chosenMatchups.zipWithIndex) {
-      score += scoreMatchup(matchup.maxArmy, matchup.minArmy, scenario)
+    for ((matchup, i) <- chosenMatchups.zipWithIndex) {
+      score += scoreMatchup(matchup.maxFaction, matchup.minFaction)
     }
     new Score(score, score, 1, minMoves)
   }
 
-  def scoreMatchup(maxArmy: Army, minArmy: Army, scenario: Scenario) : Int = {
-    matchupEvaluations.scoreMatchup(new Matchup(maxArmy, minArmy), scenario)
+  def scoreMatchup(maxFaction: Faction, minFaction: Faction) : Int = {
+    matchupEvaluations.scoreMatchup(new Matchup(maxFaction, minFaction))
   }
 
-  val numberOfArmies : Int = maxTeam.armies.size
+  val numberOfFactions : Int = maxTeam.factions.size
 
-  def verifyNumberOfArmies() {
-    val maxArmies = maxArmiesInHand.size + chosenMatchups.size + (if (maxArmyCounters.isEmpty) 0 else 2) + maxArmyPutUp.size
-    if (maxArmies != numberOfArmies)
-      assertThat("Unexpected number of max armies", maxArmies, equalTo(numberOfArmies))
-    val minArmies = minArmiesInHand.size + chosenMatchups.size + (if (minArmyCounters.isEmpty) 0 else 2) + minArmyPutUp.size
-    if (minArmies != numberOfArmies)
-      assertThat("Unexpected number of min armies", minArmies, equalTo(numberOfArmies))
+  def verifyNumberOfFactions() {
+    val maxFactions = maxFactionsInHand.size + chosenMatchups.size + (if (maxFactionCounters.isEmpty) 0 else 2) + maxFactionPutUp.size
+    if (maxFactions != numberOfFactions)
+      assertThat("Unexpected number of max factions", maxFactions, equalTo(numberOfFactions))
+    val minFactions = minFactionsInHand.size + chosenMatchups.size + (if (minFactionCounters.isEmpty) 0 else 2) + minFactionPutUp.size
+    if (minFactions != numberOfFactions)
+      assertThat("Unexpected number of min factions", minFactions, equalTo(numberOfFactions))
   }
 
   def aggregateRemainingPossibleMatchups: Score = {
-    val chosenMaxArmies = chosenMatchups.map(m => m._1.maxArmy)
-    val chosenMinArmies = chosenMatchups.map(m => m._1.minArmy)
-    val remainingMaxArmies = maxTeam.armies.filterNot(chosenMaxArmies.contains(_))
-    val remainingMinArmies = minTeam.armies.filterNot(chosenMinArmies.contains(_))
+    val chosenMaxFactions = chosenMatchups.map(m => m.maxFaction)
+    val chosenMinFactions = chosenMatchups.map(m => m.minFaction)
+    val remainingMaxFactions = maxTeam.factions.filterNot(chosenMaxFactions.contains(_))
+    val remainingMinFaction = minTeam.factions.filterNot(chosenMinFactions.contains(_))
 
-    val matchups : List[Matchup] = for (maxArmy <- remainingMaxArmies; minArmy <- remainingMinArmies)
-      yield new Matchup(maxArmy, minArmy)
+    val matchups : List[Matchup] = for (maxFaction <- remainingMaxFactions; minFaction <- remainingMinFaction)
+      yield new Matchup(maxFaction, minFaction)
 
-    val totalValue: Int = matchups.foldLeft(0)((acc:Int,m:Matchup) => acc + scoreMatchup(m.maxArmy, m.minArmy, Scenario.BATTLELINE))
+    val totalValue: Int = matchups.foldLeft(0)((acc:Int,m:Matchup) => acc + scoreMatchup(m.maxFaction, m.minFaction))
     new Score(0, totalValue, matchups.size, Nil)
+  }
+
+  def printGameState() : Unit = {
+    printMatchups()
+
+    val headers = "Team" :: "Hand" :: "Put Up" :: "Counters" :: Nil
+    val maxValues = maxTeam.name :: maxFactionsInHand.mkString(",") :: maxFactionPutUp.getOrElse(None) :: maxFactionCounters.getOrElse(None) :: Nil
+    val minValues = minTeam.name :: minFactionsInHand.mkString(",") :: minFactionPutUp.getOrElse(None) :: minFactionCounters.getOrElse(None) :: Nil
+
+    println(util.Tabulator.format(List(headers, maxValues, minValues)))
+  }
+
+  def printMatchups(): Unit = {
+    if (chosenMatchups.isEmpty)
+      return
+
+    var accumulatedScore = 0
+    val matchupRows: List[List[String]] = (for ((matchup:Matchup, index) <- chosenMatchups.reverse.zipWithIndex)
+    yield {
+      val matchupScore: Int = scoreMatchup(matchup.maxFaction, matchup.minFaction)
+      accumulatedScore += matchupScore
+      matchup.maxFaction.toString :: matchup.minFaction.toString :: matchupScore.toString :: Nil
+    }).toList
+
+    Console.println("#Matchups# (score: " + accumulatedScore + ")")
+    val headers : List[String] = maxTeam.toString :: minTeam.toString :: "Score" :: Nil
+
+    println(util.Tabulator.format(headers :: matchupRows))
   }
 
 }

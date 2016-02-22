@@ -32,23 +32,23 @@ abstract class Move() {
   }
 
   def verifyStatePreMove(gameState: GameState): Unit = {
-    gameState.verifyNumberOfArmies()
-    assertThat("Unexpected number of armies in max hand: " + getClass, gameState.maxArmiesInHand.size, equalTo(expectedNumberOfMaxArmiesInHandPreMove(gameState)))
-    assertThat("Unexpected number of armies in min hand: " + getClass, gameState.minArmiesInHand.size, equalTo(expectedNumberOfMinArmiesInHandPreMove(gameState)))
+    gameState.verifyNumberOfFactions()
+    assertThat("Unexpected number of factions in max hand: " + getClass, gameState.maxFactionsInHand.size, equalTo(expectedNumberOfMaxFactionsInHandPreMove(gameState)))
+    assertThat("Unexpected number of factions in min hand: " + getClass, gameState.minFactionsInHand.size, equalTo(expectedNumberOfMinFactionsInHandPreMove(gameState)))
   }
 
   def verifyStatePostMove(gameState: GameState): Unit = {
-    gameState.verifyNumberOfArmies()
-    assertThat("Unexpected number of armies in max hand: " + getClass, gameState.maxArmiesInHand.size, equalTo(expectedNumberOfMaxArmiesInHandPostMove(gameState)))
-    assertThat("Unexpected number of armies in min hand: " + getClass, gameState.minArmiesInHand.size, equalTo(expectedNumberOfMinArmiesInHandPostMove(gameState)))
+    gameState.verifyNumberOfFactions()
+    assertThat("Unexpected number of factions in max hand: " + getClass, gameState.maxFactionsInHand.size, equalTo(expectedNumberOfMaxFactionsInHandPostMove(gameState)))
+    assertThat("Unexpected number of factions in min hand: " + getClass, gameState.minFactionsInHand.size, equalTo(expectedNumberOfMinFactionsInHandPostMove(gameState)))
   }
 
   def equals(other: Any): Boolean
 
   override def hashCode = toString.hashCode
 
-  def expectedNumberOfMaxArmiesInHandPreMove(gameState: GameState) : Int
-  def expectedNumberOfMinArmiesInHandPreMove(gameState: GameState) : Int
-  def expectedNumberOfMaxArmiesInHandPostMove(gameState: GameState) : Int
-  def expectedNumberOfMinArmiesInHandPostMove(gameState: GameState) : Int
+  def expectedNumberOfMaxFactionsInHandPreMove(gameState: GameState) : Int
+  def expectedNumberOfMinFactionsInHandPreMove(gameState: GameState) : Int
+  def expectedNumberOfMaxFactionsInHandPostMove(gameState: GameState) : Int
+  def expectedNumberOfMinFactionsInHandPostMove(gameState: GameState) : Int
 }

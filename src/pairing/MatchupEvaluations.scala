@@ -8,31 +8,13 @@ object MatchupEvaluations {
   type EvaluationArray = mutable.Map[Matchup, Int]
   type ScoreArray = Array[Array[Int]]
 
-  def fromScoreArray(maxTeam:Team, minTeam:Team, scoreArray: ScoreArray) : MatchupEvaluations = {
+  def fromScoreArray(maxTeam: Team, minTeam: Team, scoreArray: ScoreArray): MatchupEvaluations = {
     val evaluations: MatchupEvaluations = new MatchupEvaluations(maxTeam, minTeam)
-    for ((maxArmy, maxArmyIndex) <- maxTeam.armies.zipWithIndex) {
-      for ((minArmy, minArmyIndex) <- minTeam.armies.zipWithIndex) {
-        val matchup: Matchup = new Matchup(maxArmy, minArmy)
-        val score: Int = scoreArray(maxArmyIndex)(minArmyIndex)
+    for ((maxFaction, maxFactionIndex) <- maxTeam.factions.zipWithIndex) {
+      for ((minFaction, minFactionIndex) <- minTeam.factions.zipWithIndex) {
+        val matchup: Matchup = new Matchup(maxFaction, minFaction)
+        val score: Int = scoreArray(maxFactionIndex)(minFactionIndex)
         evaluations.addEvaluation(matchup, score)
-        evaluations.addScenarioEvaluation(Scenario.BLOOD_AND_GLORY, matchup, 0)
-        evaluations.addScenarioEvaluation(Scenario.KING_OF_THE_HILL, matchup, 0)
-        evaluations.addScenarioEvaluation(Scenario.MEETING_ENGAGEMENT, matchup, 0)
-      }
-    }
-    evaluations.validate()
-    evaluations
-  }
-
-  def fromScoreArray(maxTeam:Team, minTeam:Team, battleline: ScoreArray, bloodAndGlory: ScoreArray, kingOfTheHill: ScoreArray, meetingEngagement: ScoreArray) : MatchupEvaluations = {
-    val evaluations: MatchupEvaluations = new MatchupEvaluations(maxTeam, minTeam)
-    for ((maxArmy, maxArmyIndex) <- maxTeam.armies.zipWithIndex) {
-      for ((minArmy, minArmyIndex) <- minTeam.armies.zipWithIndex) {
-        val matchup: Matchup = new Matchup(maxArmy, minArmy)
-        evaluations.addEvaluation(matchup, battleline(maxArmyIndex)(minArmyIndex))
-        evaluations.addScenarioEvaluation(Scenario.BLOOD_AND_GLORY, matchup, bloodAndGlory(maxArmyIndex)(minArmyIndex))
-        evaluations.addScenarioEvaluation(Scenario.KING_OF_THE_HILL, matchup, kingOfTheHill(maxArmyIndex)(minArmyIndex))
-        evaluations.addScenarioEvaluation(Scenario.MEETING_ENGAGEMENT, matchup, meetingEngagement(maxArmyIndex)(minArmyIndex))
       }
     }
     evaluations.validate()
@@ -45,67 +27,56 @@ class MatchupEvaluations(val maxTeam:Team, val minTeam:Team) {
     val inverse: MatchupEvaluations = new MatchupEvaluations(minTeam, maxTeam)
 
     def inverseEvalArray(evaluationArray: EvaluationArray, scoreFunction: Int => Int): EvaluationArray = {
-      evaluationArray.map(matchupAndScore => Tuple2(new Matchup(matchupAndScore._1.minArmy, matchupAndScore._1.maxArmy), scoreFunction(matchupAndScore._2)))
+      evaluationArray.map(matchupAndScore => Tuple2(new Matchup(matchupAndScore._1.minFaction, matchupAndScore._1.maxFaction), scoreFunction(matchupAndScore._2)))
     }
-    inverse.battleLine = inverseEvalArray(battleLine, { score => 20 - score })
-    inverse.scenarioEvaluations = scenarioEvaluations.map(scenarioAndEvalArray => Tuple2(scenarioAndEvalArray._1, inverseEvalArray(scenarioAndEvalArray._2, { score => -score })))
+    inverse.scoreArray = inverseEvalArray(scoreArray, { score => 20 - score })
 
     inverse
   }
 
 
-  var battleLine:mutable.Map[Matchup, Int] = new mutable.HashMap[Matchup, Int]()
-  var scenarioEvaluations:mutable.Map[Scenario, EvaluationArray] = new mutable.HashMap[Scenario, EvaluationArray]()
+  var scoreArray:mutable.Map[Matchup, Int] = new mutable.HashMap[Matchup, Int]()
 
   def addEvaluation(matchup:Matchup, score: Int): Unit = {
-    battleLine.put(matchup, score)
-  }
-
-  def addScenarioEvaluation(scenario:Scenario, matchup:Matchup, relativeScore: Int): Unit = {
-    if (scenarioEvaluations.get(scenario) == None) {
-      scenarioEvaluations.put(scenario, new mutable.HashMap[Matchup, Int]())
-    }
-    scenarioEvaluations.get(scenario).get.put(matchup, relativeScore)
+    scoreArray.put(matchup, score)
   }
 
   def validate(): Unit = {
-    for (scenario <- Scenario.BATTLELINE :: Scenario.BLOOD_AND_GLORY :: Scenario.KING_OF_THE_HILL :: Scenario.MEETING_ENGAGEMENT :: Nil) {
-      for (maxArmy <- maxTeam.armies) {
-        for (minArmy <- minTeam.armies) {
-          val matchup: Matchup = new Matchup(maxArmy, minArmy)
-          val score: Int = scoreMatchup(matchup, scenario)
+      for (maxFaction <- maxTeam.factions) {
+        for (minFaction <- minTeam.factions) {
+          val matchup: Matchup = new Matchup(maxFaction, minFaction)
+          val score: Int = scoreMatchup(matchup)
           //println(matchup.maxArmy + " vs " + matchup.minArmy + " in " + scenario + "(" + score + ")")
         }
       }
+  }
+
+  def scoreMatchup(matchup: Matchup): Int = {
+    scoreArray.get(matchup) match {
+      case None => throw new IllegalStateException("Missing evaluation for matchup: " + matchup)
+      case Some(score: Int) => score
     }
   }
 
-  def scoreMatchup(matchup: Matchup, scenario:Scenario): Int = {
-    val battleLineScore = battleLine.get(matchup) match {
-      case None => throw new IllegalStateException("Missing battleline evaluation for matchup: " + matchup)
-      case Some(score:Int) => score
+  def print(): Unit = {
+    val headers: List[String] = maxTeam.name + "/" + minTeam.name :: minTeam.factions.map(f => f.name)
+    val values: List[List[String]] = for (maxFaction <- maxTeam.factions) yield {
+      val scores: List[String] = for (minFaction <- minTeam.factions) yield scoreMatchup(new Matchup(maxFaction, minFaction)).toString
+      maxFaction.name :: scores
     }
-    scenario match {
-      case Scenario.BATTLELINE => battleLineScore
-      case _ =>
-        val scenarioEvals: EvaluationArray = scenarioEvaluations.get(scenario).get
-        val scenarioScore = scenarioEvals.get(matchup) match {
-          case None => throw new IllegalStateException("Missing scenario evaluation for matchup: " + matchup)
-          case Some(score: Int) => score
-        }
-        scenarioScore + battleLineScore
-    }
+    Console.println(util.Tabulator.format(headers :: values))
   }
+
 }
 
-case class Matchup(maxArmy:Army, minArmy: Army) {
+case class Matchup(maxFaction:Faction, minFaction: Faction) {
 
   override def equals(other: Any): Boolean = other match {
-    case that:Matchup => maxArmy.equals(that.maxArmy) && minArmy.equals(that.minArmy)
+    case that:Matchup => maxFaction.equals(that.maxFaction) && minFaction.equals(that.minFaction)
     case a:Any => false
   }
 
-  override def hashCode = (maxArmy :: minArmy :: Nil).hashCode()
+  override def hashCode = (maxFaction :: minFaction :: Nil).hashCode()
 }
 
 

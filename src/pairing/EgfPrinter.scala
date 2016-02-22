@@ -1,13 +1,10 @@
 package pairing
 
+import java.io.{File, PrintWriter}
+
 import scala.collection.mutable
 
 class EgfPrinter {
-
-  def print(pairing: Pairing) {
-
-
-  }
 
   def createNode(pairing: Pairing, previousMove: Move, informationSetId: Int): Node = {
     // move must have already been performed on pairing.gameState
@@ -20,10 +17,7 @@ class EgfPrinter {
     val childNodes = new mutable.MutableList[Node]()
     for (child: Move <- nextMoves) {
       pairing.makeMove(child)
-      val childInformationSetId: Int = if (player == 1)
-        commonInformationSetId
-      else
-        InformationSet.getNextInformationSetId
+      val childInformationSetId: Int = InformationSet.getNextInformationSetId
       childNodes.+=:(createNode(pairing, child, childInformationSetId))
       pairing.undoMove(child)
     }
@@ -31,7 +25,7 @@ class EgfPrinter {
     val outcome =
       if (nextMoves.isEmpty) {
         val score: Score = previousMove.score(pairing.gameState, pairing.moves.toList.reverse)
-        new Outcome("", score.minScore, (pairing.maxTeam.armies.size * 20) - score.minScore)
+        new Outcome("", score.minScore, (pairing.maxTeam.factions.size * 10) - score.minScore)
       } else {
         null
       }
@@ -44,19 +38,34 @@ class EgfPrinter {
     new Node(previousMove.getClass.getSimpleName, player, informationSet, outcome, childNodes.toList)
   }
 
-  def printEgfMove(pairing: Pairing): Unit = {
+  def printEgfMove(pairing: Pairing): File = {
+    val file: File = new File(pairing.maxTeam.name + " vs " + pairing.minTeam.name + ".gbt")
+    printEgfMove(pairing, new PrintWriter(file))
+    file
+  }
+
+  def printEgfMove(pairing: Pairing, printWriter: PrintWriter): Unit = {
     val node: Node = createNode(pairing, pairing.moves.head, InformationSet.getNextInformationSetId)
-    node.print()
+    try {
+      val header = "EFG 2 R \"" + pairing.maxTeam.name + " vs " + pairing.minTeam.name + "\" { \"" + pairing.maxTeam.name + "\" \"" + pairing.maxTeam.name + "\" }" +
+        "\n\"\"" +
+        "\n"
+      printWriter.print(header)
+
+      node.print(printWriter)
+    } finally {
+      printWriter.close()
+    }
   }
 
   class Node(name: String, player: Int, informationSet: InformationSet, outcome: Outcome, children: List[Node]) {
-    def print(): Unit = {
+    def print(writer: PrintWriter): Unit = {
       children match {
         case Nil =>
-          Console.println("t \"\" " + outcome.toString)
+          writer.println("t \"\" " + outcome.toString)
         case _ =>
-          Console.println("p \"\" " + player + " " + informationSet.toString + " " + (if (outcome == null) "0" else outcome.toString))
-          children.foreach(_.print())
+          writer.println("p \"\" " + player + " " + informationSet.toString + " " + (if (outcome == null) "0" else outcome.toString))
+          children.foreach(_.print(writer))
       }
     }
   }

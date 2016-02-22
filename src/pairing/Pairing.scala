@@ -1,44 +1,58 @@
 package pairing
 
+import java.io.{BufferedReader, StringReader}
 import java.util.concurrent.TimeUnit
+
+import pairing.MatchupEvaluations.ScoreArray
 
 import scala.collection.mutable
 import scala.concurrent.duration.Duration
 
 object Pairing {
-  def combinations(armies: Iterable[Army]): Iterable[(Army, Army)] = {
-    for (a1 <- armies; a2 <- armies if a1.name < a2.name) yield (a1, a2)
+  def combinations(factions: Iterable[Faction]): Iterable[(Faction, Faction)] = {
+    for (f1 <- factions; f2 <- factions if f1.name < f2.name) yield (f1, f2)
   }
 
   def convertToInverseMoves(moves:List[Move]) : List[Move] = moves match {
-    case (m1:PutUpMax) :: (m2:PutUpMin) :: xs =>
-      new PutUpMax(m2.army) :: new PutUpMin(m1.army) :: convertToInverseMoves(xs)
-    case (m1:CounterMax) :: (m2:CounterMin) :: xs =>
-      new CounterMax(m2.counters) :: new CounterMin(m1.counters) :: convertToInverseMoves(xs)
-    case (m1:ChooseCounterMax) :: (m2:ChooseCounterMin) :: xs =>
-      new ChooseCounterMax(m2.chosenMaxArmy, m2.nonChosenMaxArmy) :: new ChooseCounterMin(m1.chosenMinArmy, m1.nonChosenMinArmy) :: convertToInverseMoves(xs)
+    case (m1:PutUp) :: xs =>
+      new PutUp(m1.faction, !m1.maximizing) :: convertToInverseMoves(xs)
+    case (m1:Counter) :: xs =>
+      new Counter(m1.counters, !m1.maximizing) :: convertToInverseMoves(xs)
+    case (m1:ChooseAndCounter) :: xs =>
+      new ChooseAndCounter(m1.chosenFaction, m1.nonChosenFaction, m1.counters, !m1.maximizing) :: convertToInverseMoves(xs)
+    case (m1:ChooseLastMatchups) :: Nil =>
+      new ChooseLastMatchups(m1.chosenFaction, m1.nonChosenFaction, !m1.maximizing) :: Nil
     case _ => Nil
+  }
+
+  def fromString(csv: BufferedReader) : Pairing = {
+    def readTeam: Team = {
+      val teamLine = csv.readLine().split(";").map(s => s.trim)
+      val factions: List[Faction] = teamLine.drop(1).map(name => new Faction(name)).toList
+      new Team(teamLine.head, factions, null)
+    }
+    val maxTeam = readTeam
+    val minTeam = readTeam
+
+    def readScoreArray: ScoreArray = {
+      (for (i <-  0 to maxTeam.factions.size)
+        yield csv.readLine().split(";").map(s => s.trim.toInt)).toArray
+    }
+    val scoreArray: ScoreArray = readScoreArray
+    new Pairing(MatchupEvaluations.fromScoreArray(readTeam, readTeam, scoreArray))
   }
 }
 
-class Pairing(val scenarioOrder: List[Scenario], val matchupEvaluations: MatchupEvaluations) {
-
-  def inverse(): Pairing = {
-    val inverse: Pairing = new Pairing(scenarioOrder, matchupEvaluations.inverse())
-
-    Pairing.convertToInverseMoves(moves.toList.reverse).foreach(move => inverse.makeMove(move))
-
-    inverse
-  }
+class Pairing(val matchupEvaluations: MatchupEvaluations) {
 
   def remainingMoves = {
-    val requiredRounds : Int = (gameState.numberOfArmies - 2) / 2
+    val requiredRounds : Int = (gameState.numberOfFactions - 2) / 2
     val requiredMoves = requiredRounds * 6
     requiredMoves - moves.size
   }
 
 
-  val gameState: GameState = new GameState(scenarioOrder, matchupEvaluations)
+  val gameState: GameState = new GameState(matchupEvaluations)
 
   val calculatedMoves = mutable.Set[Evaluation]()
 
@@ -47,8 +61,13 @@ class Pairing(val scenarioOrder: List[Scenario], val matchupEvaluations: Matchup
 
   var moves: mutable.Stack[Move] = new mutable.Stack[Move]()
 
+  var maxTeamStarts: Boolean = true
+
   def startingMoves(): List[Move] = {
-    maxTeam.armies.map { a: Army => new PutUpMax(a) }.toList
+    if (maxTeamStarts)
+      maxTeam.factions.map { a: Faction => new PutUp(a, true) }
+    else
+      minTeam.factions.map { a: Faction => new PutUp(a, false) }
   }
 
   def nextMoves(): List[Move] = moves.headOption match {
@@ -112,10 +131,10 @@ class Pairing(val scenarioOrder: List[Scenario], val matchupEvaluations: Matchup
     if (move.nextMoves(gameState).isEmpty) {
       return move.score(gameState, moves.toList.reverse)
     }
-    if (false && depth >= 0 && move.isInstanceOf[ChooseCounterMin]) {
-      // TODO fix, does not work => leads to ~40 points for entire first round
-      return move.asInstanceOf[ChooseCounterMin].staticValue(gameState, moves.toList.reverse)
-    }
+//    if (false && depth >= 0 && move.isInstanceOf[ChooseCounterMin]) {
+//       TODO fix, does not work => leads to ~40 points for entire first round
+//      return move.asInstanceOf[ChooseCounterMin].staticValue(gameState, moves.toList.reverse)
+//    }
     var alpha = alphaInput
     var beta = betaInput
 
@@ -155,22 +174,22 @@ class Pairing(val scenarioOrder: List[Scenario], val matchupEvaluations: Matchup
 
 }
 
-class Army(val name: String) extends Ordered[Army] {
+class Faction(val name: String) extends Ordered[Faction] {
   override def equals(other: Any) = other match {
-    case that: Army => that.name.equals(name)
+    case that: Faction => that.name.equals(name)
     case _ => false
   }
 
   override def hashCode = name.hashCode
 
-  override def compare(army: Army): Int = {
-    name.compareTo(army.name)
+  override def compare(faction: Faction): Int = {
+    name.compareTo(faction.name)
   }
 
   override def toString = name
 }
 
-class Team(val name: String, val armies: List[Army], val scoreArray: Array[Array[Int]]) {
+class Team(val name: String, val factions: List[Faction], val scoreArray: Array[Array[Int]]) {
   override def toString = name
 }
 

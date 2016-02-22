@@ -3,30 +3,28 @@ package pairing
 import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert._
 import org.junit._
-import pairing.TestData._
-
-import scala.util.Random
+import pairing.TestPairings._
 
 class GameStateTest {
 
   @Test
   def testInitialArmiesInHand(): Unit = {
-    val gameState: GameState = new GameState(Scenario.battlelineFirst, MatchupEvaluations.fromScoreArray(bskTeam, hyms, scoreArrayHyms))
-    assertThat(gameState.minArmiesInHand.size, equalTo(4))
-    assertThat(gameState.minArmiesInHand.toList, equalTo(hyms.armies.sorted))
+    val gameState: GameState = new GameState(MatchupEvaluations.fromScoreArray(norwayBlue, norwayRed, scoreArray))
+    assertThat(gameState.minFactionsInHand.size, equalTo(5))
+    assertThat(gameState.minFactionsInHand.toList, equalTo(norwayRed.factions.sorted))
   }
 
   @Test
-  def testIsLastRound_first_round_of_4(): Unit = {
-    val gameState: GameState = new GameState(Scenario.battlelineFirst, MatchupEvaluations.fromScoreArray(bskTeam, hyms, scoreArrayHyms))
-    gameState.round += 1
+  def testIsLastRound_fourth_round_of_5(): Unit = {
+    val gameState: GameState = new GameState(MatchupEvaluations.fromScoreArray(norwayBlue, norwayRed, scoreArray))
+    gameState.round += 4
     assertTrue(gameState.isLastRound)
   }
 
   @Test
-  def testIsLastRound_second_round_of_4_fails(): Unit = {
-    val gameState: GameState = new GameState(Scenario.battlelineFirst, MatchupEvaluations.fromScoreArray(bskTeam, hyms, scoreArrayHyms))
-    gameState.round += 2
+  def testIsLastRound_fifth_round_of_5_fails(): Unit = {
+    val gameState: GameState = new GameState(MatchupEvaluations.fromScoreArray(norwayBlue, norwayRed, scoreArray))
+    gameState.round += 5
     try {
       gameState.isLastRound
       fail("Expected exception")
@@ -36,26 +34,26 @@ class GameStateTest {
   }
 
   @Test
-  def testIsLastRound_first_round_of_6_is_not(): Unit = {
-    val gameState: GameState = new GameState(Scenario.battlelineFirst, MatchupEvaluations.fromScoreArray(etcNor6, stefleifs6, scoreArraystefleifs6))
+  def testIsLastRound_first_round_of_5_is_not(): Unit = {
+    val gameState: GameState = new GameState(MatchupEvaluations.fromScoreArray(norwayBlue, norwayRed, scoreArray))
     gameState.round += 1
     assertFalse(gameState.isLastRound)
   }
 
   @Test
   def testRemoveAddKeepsOrdering(): Unit = {
-    val gameState: GameState = new GameState(Scenario.battlelineFirst, MatchupEvaluations.fromScoreArray(bskTeam, hyms, scoreArrayHyms))
-    val maxArmy: Army = new Army("Asbjørn")
-    gameState.removeMaxArmyFromHand(maxArmy)
-    gameState.addMaxArmyToHand(maxArmy)
-    assertThat(gameState.maxArmiesInHand.toList, equalTo(bskTeam.armies.sorted))
+    val gameState: GameState = new GameState(MatchupEvaluations.fromScoreArray(norwayBlue, norwayRed, scoreArray))
+    val maxArmy: Faction = asbjorn
+    gameState.removeFactionFromHand(maxArmy, max = true)
+    gameState.addFactionToHand(maxArmy, max = true)
+    assertThat(gameState.maxFactionsInHand.toList, equalTo(norwayBlue.factions.sorted))
   }
 
   @Test
   def testAddNonMaxArmyToMaxHand_fails(): Unit = {
-    val gameState: GameState = new GameState(Scenario.battlelineFirst, MatchupEvaluations.fromScoreArray(bskTeam, hyms, scoreArrayHyms))
+    val gameState: GameState = new GameState(MatchupEvaluations.fromScoreArray(norwayBlue, norwayRed, scoreArray))
     try {
-      gameState.addMaxArmyToHand(new Army("unknown"))
+      gameState.addFactionToHand(new Faction("unknown"), max = true)
       fail("Expected exception")
     } catch {
       case e:IllegalArgumentException => // expected
@@ -64,9 +62,9 @@ class GameStateTest {
 
   @Test
   def testAddNonMinArmyToMaxHand_fails(): Unit = {
-    val gameState: GameState = new GameState(Scenario.battlelineFirst, MatchupEvaluations.fromScoreArray(bskTeam, hyms, scoreArrayHyms))
+    val gameState: GameState = new GameState(MatchupEvaluations.fromScoreArray(norwayBlue, norwayRed, scoreArray))
     try {
-      gameState.addMinArmyToHand(new Army("unknown"))
+      gameState.addFactionToHand(new Faction("unknown"), max = false)
       fail("Expected exception")
     } catch {
       case e:IllegalArgumentException => // expected
@@ -75,9 +73,9 @@ class GameStateTest {
 
   @Test
   def testAddExistingMinArmyToHand_fails(): Unit = {
-    val gameState: GameState = new GameState(Scenario.battlelineFirst, MatchupEvaluations.fromScoreArray(bskTeam, hyms, scoreArrayHyms))
+    val gameState: GameState = new GameState(MatchupEvaluations.fromScoreArray(norwayBlue, norwayRed, scoreArray))
     try {
-      gameState.addMaxArmyToHand(new Army("Amund"))
+      gameState.addFactionToHand(new Faction("Amund"), max = true)
       fail("Expected exception")
     } catch {
       case e:IllegalArgumentException => // expected
@@ -86,9 +84,9 @@ class GameStateTest {
 
   @Test
   def testAddExistingMaxArmyToHand_fails(): Unit = {
-    val gameState: GameState = new GameState(Scenario.battlelineFirst, MatchupEvaluations.fromScoreArray(bskTeam, hyms, scoreArrayHyms))
+    val gameState: GameState = new GameState(MatchupEvaluations.fromScoreArray(norwayBlue, norwayRed, scoreArray))
     try {
-      gameState.addMaxArmyToHand(new Army("Amund"))
+      gameState.addFactionToHand(new Faction("Amund"), max = true)
       fail("Expected exception")
     } catch {
       case e:IllegalArgumentException => // expected
@@ -97,31 +95,31 @@ class GameStateTest {
 
   @Test
   def testScoreMatchups(): Unit = {
-    val gameState: GameState = new GameState(Scenario.battlelineFirst, MatchupEvaluations.fromScoreArray(bskTeam, stefleifs, scoreArraystefleifs))
+    val gameState: GameState = new GameState(MatchupEvaluations.fromScoreArray(norwayBlue, norwayRed, scoreArray))
     assertThat(gameState.scoreChosenMatchups(Nil).minScore, equalTo(0))
 
-    addMatchup(gameState, new Army("Martin"), new Army("Johan EM"))
-    assertThat(gameState.scoreChosenMatchups(Nil).minScore, equalTo(11))
+    addMatchup(gameState, martin, gard)
+    assertThat(gameState.scoreChosenMatchups(Nil).minScore, equalTo(6))
 
-    addMatchup(gameState, new Army("Asbjørn"), new Army("Kaj DE"))
-    assertThat(gameState.scoreChosenMatchups(Nil).minScore, equalTo(21))
+    addMatchup(gameState, asbjorn, jarle)
+    assertThat(gameState.scoreChosenMatchups(Nil).minScore, equalTo(10))
 
-    addMatchup(gameState, new Army("Amund"), new Army("Christian HE"))
-    assertThat(gameState.scoreChosenMatchups(Nil).minScore, equalTo(30))
+    addMatchup(gameState, endre, terje)
+    assertThat(gameState.scoreChosenMatchups(Nil).minScore, equalTo(16))
 
-    addMatchup(gameState, new Army("Øystein"), new Army("Stefan DoC"))
-    assertThat(gameState.scoreChosenMatchups(Nil).minScore, equalTo(41))
-    assertThat(gameState.scoreChosenMatchups(Nil).avg, equalTo(41.0))
+    addMatchup(gameState, thomas, kuba)
+    assertThat(gameState.scoreChosenMatchups(Nil).minScore, equalTo(23))
+
+    addMatchup(gameState, leif, jonas)
+    assertThat(gameState.scoreChosenMatchups(Nil).minScore, equalTo(29))
+
+    assertThat(gameState.scoreChosenMatchups(Nil).avg, equalTo(29.0))
   }
 
-  def addMatchup(gameState: GameState, maxArmy: Army, minArmy: Army) {
-    gameState.removeMaxArmyFromHand(maxArmy)
-    gameState.removeMinArmyFromHand(minArmy)
-    gameState.addMatchup(new Matchup(maxArmy, minArmy), Scenario.BATTLELINE)
+  def addMatchup(gameState: GameState, maxArmy: Faction, minArmy: Faction) {
+    gameState.removeFactionFromHand(maxArmy, max = true)
+    gameState.removeFactionFromHand(minArmy, max = false)
+    gameState.addMatchup(new Matchup(maxArmy, minArmy))
   }
 
-  @Test
-  def testRandomizeTables(): Unit = {
-    Console.println(Random.shuffle((1 to 8).toSet))
-  }
 }
