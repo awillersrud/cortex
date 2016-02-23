@@ -1,7 +1,5 @@
 package pairing
 
-import java.io.PrintWriter
-
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import pairing.TestPairings._
@@ -10,75 +8,58 @@ import pairing.TestPairings._
 class PairingTest {
 
   @Test
-  def alphaBetaTest(): Unit = {
-    norwayBlueVsRed.evaluateMoves(verbose = true)
+  def testEvalutateStartingMoves(): Unit = {
+    val moves: List[Evaluation] = norwayBlueVsRed.evaluateMoves(verbose = true)
+    assert(moves.size == 5)
   }
 
   @Test
-  def alphaBetaTestPutUp(): Unit = {
-    norwayBlueVsRed
+  def testEvalutateFirstCounterMoves(): Unit = {
+    val moves: List[Evaluation] = norwayBlueVsRed
       .makeMoves(new PutUp(martin, true) :: Nil)
       .evaluateMoves()
+    assert(moves.size == 5*4/2)
   }
 
   @Test
-  def alphaBetaTestStefleifsChooseCounters(): Unit = {
-    norwayBlueVsRed.makeMoves(
+  def testEvalutateFirstChooseAndCounterMoves(): Unit = {
+    val moves: List[Evaluation] = norwayBlueVsRed.makeMoves(
       new PutUp(martin, true) ::
         new Counter((gard, jonas), false) :: Nil)
       .evaluateMoves()
+    assert(moves.size == 4*3/2*2)
   }
 
   @Test
-  def chooseCounterMinHashTest() {
+  def testFactionListEquality() {
     val testFaction = new Faction("test")
     val testFaction2 = new Faction("test2")
     assert((testFaction :: testFaction2 :: Nil).hashCode() == (testFaction :: testFaction2 :: Nil).hashCode())
   }
 
-  val testkampMoves: List[Move] =
-    new PutUp(martin, true) ::
-      new Counter((gard, jonas), false) ::
-      new ChooseAndCounter(gard, jonas, (asbjorn, endre), true) ::
-      new ChooseAndCounter(asbjorn, endre, (terje, jarle), false) ::
-    new ChooseAndCounter(terje, jarle, (thomas, leif), true) ::
-      new ChooseLastMatchups(thomas, leif, false) ::
-      Nil
-
-  val testkampExpectedScores = Map[Move, Int](
-    new PutUp(martin, true) -> 24,
-      new Counter((gard, jonas), false) -> 29,
-      new ChooseAndCounter(gard, jonas, (asbjorn, endre), true) -> 27,
-      new ChooseAndCounter(asbjorn, endre, (terje, jarle), false) -> 31,
-      new ChooseAndCounter(terje, jarle, (thomas, leif), true) -> 31,
-      new ChooseLastMatchups(thomas, leif, false) -> 31
-    )
-
   @Test
-  def testPairingLagkamp5(): Unit = {
-    val lagkamp: Pairing = TestPairings.norwayBlueVsRed
+  def testExpectedScores(): Unit = {
+    val pairing: Pairing = TestPairings.norwayBlueVsRed
 
-    verifyExpectedScores(lagkamp, expectedScores = testkampExpectedScores)
+    verifyExpectedScores(pairing, blueVsRedMoves, blueVsRedExpectedScores)
+
+    blueVsRedMoves.reverse.foreach { pairing.undoMove }
+
+    verifyExpectedScores(pairing, blueVsRedMoves, blueVsRedExpectedScores)
   }
 
-  def verifyExpectedScores(lagkamp: Pairing, moves: List[Move] = testkampMoves, expectedScores: Map[Move, Int]): Unit = {
+  def verifyExpectedScores(pairing: Pairing, moves: List[Move], expectedScores: Map[Move, Int]): Unit = {
     for (move <- moves) {
       if (expectedScores.contains(move)) {
-        val evaluation: Evaluation = lagkamp.evaluateMove(move)
+        val evaluation: Evaluation = pairing.evaluateMove(move)
         val expectedScore: Int = expectedScores.get(move).get
         val actualScore: Int = evaluation.score.minScore
-        println("Verifying score for " + lagkamp.describe(move) + ":" + expectedScore)
-        assertEquals("Wrong score for: " + lagkamp.describe(move), expectedScore, actualScore)
+        println("Verifying score for " + pairing.describe(move) + ":" + expectedScore)
+        assertEquals("Wrong score for: " + pairing.describe(move), expectedScore, actualScore)
       }
-      lagkamp.makeMove(move)
+      pairing.makeMove(move)
     }
-  }
 
-  @Test
-  def egfPrinterTest(): Unit = {
-    val pairing = TestPairings.norwayBlueVsRed
-    pairing.makeMoves(testkampMoves.dropRight(2))
-    new EgfPrinter().printEgfMove(pairing, new PrintWriter(System.out))
   }
 
 }

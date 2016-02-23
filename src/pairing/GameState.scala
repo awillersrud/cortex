@@ -158,7 +158,7 @@ class GameState(matchupEvaluations: MatchupEvaluations) {
       matchup.maxFaction.toString :: matchup.minFaction.toString :: matchupScore.toString :: Nil
     }).toList
 
-    Console.println("#Matchups# (score: " + accumulatedScore + ")")
+    Console.println("Matchups (score: " + accumulatedScore + ")")
     val headers : List[String] = maxTeam.toString :: minTeam.toString :: "Score" :: Nil
 
     println(util.Tabulator.format(headers :: matchupRows))

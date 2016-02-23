@@ -38,14 +38,6 @@ class ChooseLastMatchups(val chosenFaction: Faction, val nonChosenFaction: Facti
 
   override def choiceDescription: String = "choose"
 
-  override def expectedNumberOfMaxFactionsInHandPostMove(gameState: GameState): Int = 0
-
-  override def expectedNumberOfMinFactionsInHandPreMove(gameState: GameState): Int = 0
-
-  override def expectedNumberOfMinFactionsInHandPostMove(gameState: GameState): Int = 0
-
-  override def expectedNumberOfMaxFactionsInHandPreMove(gameState: GameState): Int = 0
-
   override def maximizing: Boolean = max
 
   override def equals(other: Any) = other match {

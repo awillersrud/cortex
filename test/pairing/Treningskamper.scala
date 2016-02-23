@@ -1,7 +1,0 @@
-package pairing
-
-object Treningskamper {
-
-
-
-}

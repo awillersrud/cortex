@@ -8,11 +8,6 @@ class Counter(val counters: (Faction, Faction), max: Boolean) extends Move {
     }.toList
   }
 
-  def expectedNumberOfMaxFactionsInHandPreMove(gameState: GameState) : Int = gameState.factionsPreRound - 3
-  def expectedNumberOfMinFactionsInHandPreMove(gameState: GameState) : Int = gameState.factionsPreRound - 1
-  def expectedNumberOfMaxFactionsInHandPostMove(gameState: GameState) : Int = gameState.factionsPreRound - 3
-  def expectedNumberOfMinFactionsInHandPostMove(gameState: GameState) : Int = gameState.factionsPreRound - 3
-
   override def makeMove(gameState: GameState): Unit = {
     gameState.removeFactionFromHand(counters._1, max)
     gameState.removeFactionFromHand(counters._2, max)

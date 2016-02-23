@@ -30,4 +30,22 @@ object TestPairings {
     val pairing = new Pairing(MatchupEvaluations.fromScoreArray(norwayBlue, norwayRed, scoreArray))
     pairing
   }
+
+  val blueVsRedMoves: List[Move] =
+    new PutUp(martin, true) ::
+      new Counter((gard, jonas), false) ::
+      new ChooseAndCounter(gard, jonas, (asbjorn, endre), true) ::
+      new ChooseAndCounter(asbjorn, endre, (terje, jarle), false) ::
+      new ChooseAndCounter(terje, jarle, (thomas, leif), true) ::
+      new ChooseLastMatchups(thomas, leif, false) ::
+      Nil
+
+  val blueVsRedExpectedScores = Map[Move, Int](
+    new PutUp(martin, true) -> 24,
+    new Counter((gard, jonas), false) -> 29,
+    new ChooseAndCounter(gard, jonas, (asbjorn, endre), true) -> 27,
+    new ChooseAndCounter(asbjorn, endre, (terje, jarle), false) -> 31,
+    new ChooseAndCounter(terje, jarle, (thomas, leif), true) -> 31,
+    new ChooseLastMatchups(thomas, leif, false) -> 31
+  )
 }

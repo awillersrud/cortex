@@ -39,7 +39,6 @@ class InteractivePairing(pairing: Pairing) {
       } else {
         if (nextMoves != Nil) {
           val nextMove: Move = nextMoves.head
-//          println("Round: " + pairing.gameState.round)
 
           println(pairing.getTeam(nextMove) + " " + nextMove.choiceDescription + ":")
         }
@@ -82,7 +81,7 @@ class InteractivePairing(pairing: Pairing) {
       State.skipPrintNextCommands = true
     }, hidden = true)
 
-    if (pairing.moves.nonEmpty && pairing.moves.head.maximizing) {
+    if (pairing.moves.nonEmpty && !pairing.moves.head.maximizing) {
       commands += new Command("g", "[g] Print gambit egf file", input => {
         val egfFile: File = new EgfPrinter().printEgfMove(pairing)
         Console.println("Saved game to gambit file: " + egfFile.getName)

@@ -13,11 +13,6 @@ class ChooseAndCounter(val chosenFaction: Faction, val nonChosenFaction: Faction
 
   }
 
-  def expectedNumberOfMaxFactionsInHandPreMove(gameState: GameState) : Int = gameState.factionsPreRound - 3
-  def expectedNumberOfMinFactionsInHandPreMove(gameState: GameState) : Int = gameState.factionsPreRound - 3
-  def expectedNumberOfMaxFactionsInHandPostMove(gameState: GameState) : Int = gameState.factionsPreRound - (if (gameState.isLastRound) 4 else 3)
-  def expectedNumberOfMinFactionsInHandPostMove(gameState: GameState) : Int = gameState.factionsPreRound - (if (gameState.isLastRound) 3 else 2)
-
   var previousPutUp : Option[Faction] = None
   var previousCounters : Option[(Faction, Faction)] = None
 

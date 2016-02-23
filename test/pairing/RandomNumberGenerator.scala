@@ -12,7 +12,7 @@ class RandomNumberGenerator {
 
   @Test
   def sumRandomVariablesTest(): Unit = {
-    val matchups = 4 :: 4 :: 4 :: 4 :: 4 :: Nil
+    val matchups = 4 :: 4 :: 9 :: 4 :: 4 :: Nil
     val experimentCount: Int = 100000
 
     val expectedNumberOfVictories : Double = matchups.sum.toDouble

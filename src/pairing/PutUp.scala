@@ -27,11 +27,6 @@ class PutUp(val faction: Faction, max: Boolean) extends Move {
 
   def getDescription(gameState: GameState) = gameState.team(max).name + " put up: " + faction.name
 
-  def expectedNumberOfMaxFactionsInHandPreMove(gameState: GameState) : Int = gameState.factionsPreRound - 2 // correct for previous round number
-  def expectedNumberOfMinFactionsInHandPreMove(gameState: GameState) : Int = gameState.factionsPreRound - 2 // correct for previous round number
-  def expectedNumberOfMaxFactionsInHandPostMove(gameState: GameState) : Int = gameState.factionsPreRound - 1
-  def expectedNumberOfMinFactionsInHandPostMove(gameState: GameState) : Int = gameState.factionsPreRound
-
   override def makeMove(gameState: GameState): Unit = {
     gameState.removeFactionFromHand(faction, max)
     gameState.setPutUp(Some(faction), max)
