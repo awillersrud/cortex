@@ -192,6 +192,11 @@ class Faction(val name: String) extends Ordered[Faction] {
 class Team(val name: String, val factions: List[Faction], val scoreArray: Array[Array[Int]]) {
   override def toString = name
 }
+object Team {
+  def create(name: String, player1: String, player2: String, player3: String, player4: String, player5: String, scoreArray: ScoreArray) = {
+    new Team(name, new Faction(player1) :: new Faction(player2) :: new Faction(player3) :: new Faction(player4) :: new Faction(player5) :: Nil, scoreArray)
+  }
+}
 
 class Evaluation(val previousMoves: List[Move], val move: Move, val score: Score = null) {
   override def toString = move + ":" + score
