@@ -1,4 +1,4 @@
-package pairing.lagkamper
+package pairing.wtc2017.treningskamper
 
 import pairing._
 
@@ -27,7 +27,7 @@ Kenneth (Coven/Skarre1): Cygnar: -1, Circle: -1, Legion: 1, Cryx: 0, Mercenaries
     Array(6,5,6,6,6),
     Array(5,6,6,4,6),
     Array(5,4,6,4,5),
-    Array(4,4,6,5,4)
+    Array(4,4,6,5,4) // Cygnar er egentlig 4, men typo av meg
   )
 
   def pairing: Pairing = {

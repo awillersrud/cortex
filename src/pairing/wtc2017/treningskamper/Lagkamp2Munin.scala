@@ -1,4 +1,4 @@
-package pairing.lagkamper
+package pairing.wtc2017.treningskamper
 
 import pairing._
 
