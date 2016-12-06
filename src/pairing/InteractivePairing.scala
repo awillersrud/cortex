@@ -14,7 +14,7 @@ class InteractivePairing(pairing: Pairing) {
   }
 
   object State {
-    var maxNumberOfContinuations: Int = 4
+    var maxNumberOfContinuations: Int = 8
 
     var skipPrintNextCommands = false
   }
@@ -140,7 +140,8 @@ class InteractivePairing(pairing: Pairing) {
     override def print(): Unit = {
       Console.println(description)
 
-      if (minScore.minScore == score.minScore && continuationEvaluations.nonEmpty)
+      val diff: Int = Math.abs(minScore.minScore - score.minScore)
+      if (diff < 5 && continuationEvaluations.nonEmpty)
         Console.println(createContinuationDescription(continuationEvaluations.take(State.maxNumberOfContinuations)))
     }
 
