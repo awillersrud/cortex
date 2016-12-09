@@ -45,7 +45,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>pairing.wtc2017.treningskamper.Lagkamp2Munin</mainClass>
+                            <mainClass>pairing.PairingRunner</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

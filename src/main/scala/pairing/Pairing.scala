@@ -1,6 +1,5 @@
 package pairing
 
-import java.io.{BufferedReader, StringReader}
 import java.util.concurrent.TimeUnit
 
 import pairing.MatchupEvaluations.ScoreArray
@@ -25,22 +24,6 @@ object Pairing {
     case _ => Nil
   }
 
-  def fromString(csv: BufferedReader) : Pairing = {
-    def readTeam: Team = {
-      val teamLine = csv.readLine().split(";").map(s => s.trim)
-      val factions: List[Faction] = teamLine.drop(1).map(name => new Faction(name)).toList
-      new Team(teamLine.head, factions, null)
-    }
-    val maxTeam = readTeam
-    val minTeam = readTeam
-
-    def readScoreArray: ScoreArray = {
-      (for (i <-  0 to maxTeam.factions.size)
-        yield csv.readLine().split(";").map(s => s.trim.toInt)).toArray
-    }
-    val scoreArray: ScoreArray = readScoreArray
-    new Pairing(MatchupEvaluations.fromScoreArray(readTeam, readTeam, scoreArray))
-  }
 }
 
 class Pairing(val matchupEvaluations: MatchupEvaluations) {
