@@ -16,7 +16,7 @@ object Lagkamp2Munin {
     null)
 
   /*
-  	Asbjørn	Nico	Christian	Martin	Ole
+  	AsbjÃ¸rn	Nico	Christian	Martin	Ole
 Trolls (d3, Ragnor)	60	50	61	55	59
 Cryx (Coven, D1)  	59	49	59	50	50
 Cygnar (H2, H3)	    61	51	50	35	40

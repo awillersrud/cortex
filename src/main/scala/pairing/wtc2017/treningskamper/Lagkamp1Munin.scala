@@ -4,7 +4,7 @@ import pairing._
 
 object Lagkamp1Munin {
 
-  def enemy = Team.create("Hugin1", "Jarle", "Asbjørn", "Nico", "Hans", "Kenneth", null)
+  def enemy = Team.create("Hugin1", "Jarle", "AsbjÃ¸rn", "Nico", "Hans", "Kenneth", null)
 
   def firstPlayerTeam =
     Team.create("Munin1",
@@ -16,7 +16,7 @@ object Lagkamp1Munin {
     null)
 
   /*
-Spiller......Jarle......Asbjørn.....Nico....Hans....Kenneth
+Spiller......Jarle......AsbjÃ¸rn.....Nico....Hans....Kenneth
 Jonas...... ...-1...........1...........2.........0...........1.....
 Cuba	.........-1...........1...........2.........1...........1.....
 Sverre........-2...........-1..........2..........2...........1....

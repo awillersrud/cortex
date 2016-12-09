@@ -2,25 +2,25 @@ package pairing.wtc2016
 
 import pairing.{InteractivePairing, MatchupEvaluations, Pairing, Team}
 
-object Kamp6 {
+object Kamp2 {
 
-  def enemy = Team.create("England Lions", "Caine2+Haley2", "Baldur1+Baldur2", "Lucant+Dir", "Grim2+Ragnor1", "Siege1+Stryker2", null)
+  def enemy = Team.create("Portugal ", "Skorne", "Cryx", "Cygnar", "Legion", "Convergence", null)
 
   def norwayBlue =
     Team.create("Norway Blue",
     "Endre CoC",
     "Mats Trolls",
     "Leif Khador",
-    "Asbjørn Circle",
+    "AsbjÃ¸rn Circle",
     "Martin Legion",
     null)
 
   val scoreArray = Array(
-    Array(4,3,6,3,5),
-    Array(4,4,6,6,5),
-    Array(5,3,4,6,4),
-    Array(6,3,6,6,3),
-    Array(6,5,6,6,4)
+    Array(3,4,3,4,5),
+    Array(5,5,3,3,6),
+    Array(6,7,5,6,5),
+    Array(6,6,5,6,6),
+    Array(5,4,6,3,7)
   )
 
   def pairing: Pairing = {

@@ -9,7 +9,7 @@ object Lagkamper {
     "Endre CoC",
     "Mats Trolls",
     "Leif Khador",
-    "Asbjørn Circle",
+    "AsbjÃ¸rn Circle",
     "Martin Legion",
     null)
 

@@ -5,7 +5,7 @@ object TestPairings {
   val endre = new Faction("Endre")
   val thomas = new Faction("Thomas")
   val leif = new Faction("Leif")
-  val asbjorn = new Faction("Asbjørn")
+  val asbjorn = new Faction("AsbjÃ¸rn")
   val martin = new Faction("Martin")
 
   def norwayBlue = new Team("Blue", endre :: thomas :: leif :: asbjorn :: martin :: Nil, null)
