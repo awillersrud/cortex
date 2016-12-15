@@ -2,6 +2,7 @@ package pairing
 
 import org.hamcrest.CoreMatchers._
 import org.junit.Assert._
+import pairing.moves.Move
 
 import scala.collection.mutable
 

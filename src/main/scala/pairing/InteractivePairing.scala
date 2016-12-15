@@ -2,6 +2,8 @@ package pairing
 
 import java.io.File
 
+import pairing.moves.{ChooseLastMatchups, Move}
+
 import scala.collection.mutable
 import scala.io.StdIn
 
@@ -27,7 +29,9 @@ class InteractivePairing(pairing: Pairing) {
 
       val nextMoves: List[Move] = pairing.nextMoves()
       if (nextMoves == Nil) {
+        printMoves()
         pairing.gameState.printMatchups()
+
       } else {
         pairing.gameState.printGameState()
       }
@@ -40,7 +44,7 @@ class InteractivePairing(pairing: Pairing) {
         if (nextMoves != Nil) {
           val nextMove: Move = nextMoves.head
 
-          println(pairing.getTeam(nextMove) + " " + nextMove.choiceDescription + ":")
+          //1println(pairing.getTeam(nextMove) + " " + nextMove.choiceDescription + ":")
         }
         commands.filter(!_.hidden).foreach(c => c.print())
       }
@@ -92,6 +96,11 @@ class InteractivePairing(pairing: Pairing) {
         pairing.undoMove(pairing.moves.head)
       }, hidden = false)
     }
+    if (pairing.moves.nonEmpty) {
+      commands += new Command("p", "[p] Print moves", input => {
+        printMoves()
+      }, hidden = false)
+    }
     if (pairing.moves.isEmpty) {
       val startingTeam = if (pairing.maxTeamStarts) pairing.maxTeam else pairing.minTeam
       commands += new Command("t", "[t] Toggle starting team (currently " + startingTeam.name + ")", input => {
@@ -99,6 +108,15 @@ class InteractivePairing(pairing: Pairing) {
       }, hidden = false)
     }
     commands.toList
+  }
+
+  def printMoves(): Unit = {
+    val originalMoves = pairing.moves.toList
+    pairing.moves.foreach(m => pairing.undoMove(m))
+    originalMoves.reverseIterator.foreach(m => {
+      Console.println(m.getDescription(pairing.gameState))
+      pairing.makeMove(m)
+    })
   }
 
   def calculateContinuation(move: Move): List[Evaluation] = {
@@ -129,7 +147,7 @@ class InteractivePairing(pairing: Pairing) {
   class MoveCommand(val index: Int, val move: Move, score: Score, minScore: Score)
     extends Command(
       index.toString,
-      "[" + index + "] " + move.choice + ", score: " + score
+      "[" + index + "] " + move.getDescription(pairing.gameState) + ", score: " + score
       ,
       { input: String =>
         Console.println("Performing move [" + index + "] " + pairing.describe(move))

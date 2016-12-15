@@ -2,6 +2,8 @@ package pairing
 
 import java.io.{File, PrintWriter}
 
+import pairing.moves.Move
+
 import scala.collection.mutable
 
 class EgfPrinter {

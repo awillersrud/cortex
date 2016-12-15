@@ -1,4 +1,6 @@
-package pairing
+package pairing.moves
+
+import pairing._
 
 class ChooseLastMatchups(val chosenFaction: Faction, val nonChosenFaction: Faction, max: Boolean) extends Move {
   override def nextMoves(gameState: GameState): List[Move] = Nil
@@ -29,14 +31,27 @@ class ChooseLastMatchups(val chosenFaction: Faction, val nonChosenFaction: Facti
     }
   }
 
+  def chosenMatchupScore(gameState: GameState) =
+    if (max)
+      gameState.scoreMatchup(gameState.maxFactionPutUp.get, chosenFaction)
+    else
+      gameState.scoreMatchup(chosenFaction, gameState.minFactionPutUp.get)
+
+  def nonChosenMatchupScore(gameState: GameState) =
+    if (max)
+      gameState.scoreMatchup(gameState.maxFactionsInHand.head, nonChosenFaction)
+    else
+      gameState.scoreMatchup(nonChosenFaction, gameState.minFactionsInHand.head)
+
   override def getDescription(gameState: GameState): String = {
     val factionInHand = if (max) gameState.maxFactionsInHand.head else gameState.minFactionsInHand.head
-    gameState.team(max).name + " choose: " + chosenFaction.name + " vs " + gameState.getPutUp(max) + " and " + nonChosenFaction + " vs " + factionInHand
+    gameState.team(max).name + " velger " + chosenFaction.name + " vs " + gameState.getPutUp(max).get + "(" + chosenMatchupScore(gameState) + ") og " +
+      nonChosenFaction + " vs " + factionInHand + "(" + nonChosenMatchupScore(gameState) + ")"
   }
 
   override def choice: String = chosenFaction.name
 
-  override def choiceDescription: String = "choose"
+  override def choiceDescription: String = "velger"
 
   override def maximizing: Boolean = max
 

@@ -1,4 +1,6 @@
-package pairing
+package pairing.moves
+
+import pairing._
 
 class ChooseAndCounter(val chosenFaction: Faction, val nonChosenFaction: Faction, val counters: (Faction, Faction), val max: Boolean) extends Move {
 
@@ -62,15 +64,24 @@ class ChooseAndCounter(val chosenFaction: Faction, val nonChosenFaction: Faction
     gameState.round -= 1
   }
 
-  def chosenMatchupScore(gameState: GameState) = gameState.scoreMatchup(gameState.maxFactionPutUp.get, chosenFaction)
+  def chosenMatchupScore(gameState: GameState) =
+    if (max)
+      gameState.scoreMatchup(gameState.maxFactionPutUp.get, chosenFaction)
+    else
+      gameState.scoreMatchup(chosenFaction, gameState.minFactionPutUp.get)
 
-  def nonChosenMatchupScore(gameState: GameState) = gameState.scoreMatchup(gameState.maxFactionsInHand.head, nonChosenFaction)
+  def nonChosenMatchupScore(gameState: GameState) =
+    if (max)
+      gameState.scoreMatchup(gameState.maxFactionsInHand.head, nonChosenFaction)
+    else
+      gameState.scoreMatchup(nonChosenFaction, gameState.minFactionsInHand.head)
 
   def getDescription(gameState: GameState) = {
-    val nonChosen = if (gameState.maxFactionsInHand.size == 1) nonChosenFaction + " vs " + gameState.maxFactionsInHand.head + "(" + nonChosenMatchupScore(gameState) + ")" else "return " + nonChosenFaction + " to hand"
-    gameState.maxTeam.name + " chooses: " +
-      chosenFaction + " vs " + gameState.maxFactionPutUp.get + "(" + chosenMatchupScore(gameState) + ") and " +
-      nonChosen
+      gameState.team(max).name + " velger " +
+        chosenFaction + " vs " +
+        gameState.getPutUp(max).get + "(" +
+        chosenMatchupScore(gameState) + ") og kontrer " +
+        nonChosenFaction + " med (" + counters._1 + ", " + counters._2 + ")"
   }
 
   override def equals(other: Any) = other match {
@@ -80,9 +91,9 @@ class ChooseAndCounter(val chosenFaction: Faction, val nonChosenFaction: Faction
     case _ => false
   }
 
-  override def choiceDescription = "choose"
+  override def choiceDescription = "velger"
 
-  override def choice = chosenFaction.name + " and counters (" + counters._1 + ", " + counters._2 + ")"
+  override def choice = chosenFaction.name + " og kontrer " + nonChosenFaction + " med (" + counters._1 + ", " + counters._2 + ")"
 
   def maximizing : Boolean = max
 

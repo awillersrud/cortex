@@ -1,4 +1,6 @@
-package pairing
+package pairing.moves
+
+import pairing.{GameState, Score}
 
 abstract class Move() {
   def nextMoves(gameState: GameState) : List[Move]

@@ -1,5 +1,7 @@
 package pairing
 
+import pairing.moves._
+
 object TestPairings {
 
   val endre = new Faction("Endre")

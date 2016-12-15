@@ -1,0 +1,19 @@
+Hugin2
+Mats
+Nima
+Sverre
+Jarle
+Geir
+
+Munin2
+Coven - Denny1
+WW - Tuna
+HR - Sev2
+Abby2 - Lylyth
+Rahn - Kaelyssa
+
+60,49,60,40,51
+60,29,60,60,51
+50,30,59,60,51
+60,49,51,50,60
+60,50,50,49,51

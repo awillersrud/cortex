@@ -3,6 +3,7 @@ package pairing
 import java.util.concurrent.TimeUnit
 
 import pairing.MatchupEvaluations.ScoreArray
+import pairing.moves._
 
 import scala.collection.mutable
 import scala.concurrent.duration.Duration
@@ -88,7 +89,7 @@ class Pairing(val matchupEvaluations: MatchupEvaluations) {
   }
 
   def describe(move: Move): String = {
-    getTeam(move) + " " + move.toString
+    move.getDescription(gameState)
   }
 
   def makeMoves(moves: List[Move]) = {

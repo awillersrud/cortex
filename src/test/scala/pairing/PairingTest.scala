@@ -3,6 +3,7 @@ package pairing
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import pairing.TestPairings._
+import pairing.moves.{Counter, Move, PutUp}
 
 
 class PairingTest {

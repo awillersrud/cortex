@@ -1,5 +1,7 @@
 package pairing
 
+import pairing.moves.Move
+
 class Score(val minScore: Int, val total: Int, val combinations: Int, val moves: List[Move], val continuation: List[(Move, Score)] = Nil) extends Ordered[Score] {
   override def toString = {
       "" + minScore

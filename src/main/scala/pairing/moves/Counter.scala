@@ -1,4 +1,6 @@
-package pairing
+package pairing.moves
+
+import pairing._
 
 class Counter(val counters: (Faction, Faction), max: Boolean) extends Move {
 
@@ -20,11 +22,14 @@ class Counter(val counters: (Faction, Faction), max: Boolean) extends Move {
     gameState.setCounters(None, max)
   }
 
-  def getDescription(gameState: GameState) = gameState.team(max).name + " counters: (" + counters._1.name + "," + counters._2.name + ")"
+  def getDescription(gameState: GameState) = {
+    val putUpText = if (max) gameState.minFactionPutUp.get else gameState.maxFactionPutUp.get
+    gameState.team(max).name + " kontrer " + putUpText + " med (" + counters._1.name + ", " + counters._2.name + ")"
+  }
 
-  override def choiceDescription = "counters"
+  override def choiceDescription = "kontrer"
 
-  override def choice = counters._1 + "/" + counters._2
+  override def choice = counters._1 + ", " + counters._2
 
   override def equals(other: Any) : Boolean = other match {
     case counterMin:Counter => (counterMin.counters._1.equals(counters._1) && counterMin.counters._2.equals(counters._2)) ||
