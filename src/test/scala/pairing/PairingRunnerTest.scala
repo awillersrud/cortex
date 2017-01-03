@@ -3,12 +3,13 @@ package pairing
 import org.junit.Test
 import org.junit.Assert._
 import org.hamcrest.CoreMatchers.equalTo
+import pairing.input.FilePairingReader
 
-class PairingRunnerTest {
+class FilePairingReaderTest {
 
   @Test
   def testReadPairingFromFile(): Unit = {
-    val pairing: Pairing = PairingRunner.readPairing("src/test/resources/test-pairing.csv")
+    val pairing: Pairing = FilePairingReader.readPairing("src/test/resources/test-pairing.csv", inverse = false)
     assertThat(pairing.maxTeam.name, equalTo("Hugin2"))
     assertThat(pairing.maxTeam.factions.head.name, equalTo("h1"))
     assertThat(pairing.minTeam.name, equalTo("Munin2"))

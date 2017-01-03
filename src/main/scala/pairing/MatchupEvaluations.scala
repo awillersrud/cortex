@@ -29,7 +29,7 @@ class MatchupEvaluations(val maxTeam:Team, val minTeam:Team) {
     def inverseEvalArray(evaluationArray: EvaluationArray, scoreFunction: Int => Int): EvaluationArray = {
       evaluationArray.map(matchupAndScore => Tuple2(new Matchup(matchupAndScore._1.minFaction, matchupAndScore._1.maxFaction), scoreFunction(matchupAndScore._2)))
     }
-    inverse.scoreArray = inverseEvalArray(scoreArray, { score => 20 - score })
+    inverse.scoreArray = inverseEvalArray(scoreArray, { score => 100 - score })
 
     inverse
   }

@@ -1,7 +1,5 @@
 package pairing
 
-import org.hamcrest.CoreMatchers._
-import org.junit.Assert._
 import pairing.moves.Move
 
 import scala.collection.mutable
@@ -118,10 +116,10 @@ class GameState(matchupEvaluations: MatchupEvaluations) {
   def verifyNumberOfFactions() {
     val maxFactions = maxFactionsInHand.size + chosenMatchups.size + (if (maxFactionCounters.isEmpty) 0 else 2) + maxFactionPutUp.size
     if (maxFactions != numberOfFactions)
-      assertThat("Unexpected number of max factions", maxFactions, equalTo(numberOfFactions))
+      throw new RuntimeException("Unexpected number of max factions, maxFactions: " + maxFactions + ", numberOfFactions: " + numberOfFactions)
     val minFactions = minFactionsInHand.size + chosenMatchups.size + (if (minFactionCounters.isEmpty) 0 else 2) + minFactionPutUp.size
     if (minFactions != numberOfFactions)
-      assertThat("Unexpected number of min factions", minFactions, equalTo(numberOfFactions))
+      throw new RuntimeException("Unexpected number of min factions, minFactions: " + minFactions + ", numberOfFactions: " + numberOfFactions)
   }
 
   def aggregateRemainingPossibleMatchups: Score = {

@@ -1,37 +1,25 @@
 package pairing
 
-import java.nio.charset.StandardCharsets
-
-import pairing.MatchupEvaluations.ScoreArray
-
-import scala.io.Source
+import pairing.input.{FilePairingReader, GoogleSheetsPairingReader}
 
 object PairingRunner {
 
   def main(args: Array[String]): Unit = {
-
-    val pairing = readPairing(args(0))
-
-    new InteractivePairing(pairing).run()
+    if (args.length == 0) {
+      usage
+    } else if (args(0).startsWith("--file")) {
+      new InteractivePairing(FilePairingReader.readPairing(args(1), args.contains("--inverse"))).run()
+    } else if (args(0).startsWith("--sheet")) {
+      val range = args(3)
+      val reader = new GoogleSheetsPairingReader(sheetId = args(1), range, verticalIsMaxTeam = true, inverse = args.contains("--inverse"))
+      new InteractivePairing(reader.readPairing()).run()
+    } else {
+      usage
+    }
   }
 
-  def readPairing(path: String) : Pairing = {
-    val lines: Iterator[String] = Source.fromFile(path, StandardCharsets.UTF_8.toString).getLines()
-    def readTeam: Team = {
-      val teamName = lines.next()
-      val factions: List[Faction] = (for (i <- 1 to 5) yield new Faction(lines.next().trim)).toList
-      lines.next() // empty line after each team
-      new Team(teamName, factions, null)
-    }
-    val maxTeam = readTeam
-    val minTeam = readTeam
-
-    def readScoreArray: ScoreArray = {
-      (for (i <-  1 to 5)
-        yield lines.next().split(",").map(s => s.trim.toInt)).toArray
-    }
-    val scoreArray: ScoreArray = readScoreArray
-    new Pairing(MatchupEvaluations.fromScoreArray(maxTeam, minTeam, scoreArray))
+  def usage: Unit = {
+    Console.println("Usage: \n--file RedVsBlue.txt\nOR\n--sheet <GoogleSheetsId> --range A3:F8 [--inverse]")
+    System.exit(1)
   }
-
 }
