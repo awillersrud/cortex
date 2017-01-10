@@ -1,5 +1,7 @@
 package pairing
 
+import java.io.File
+
 import org.junit.Test
 import org.junit.Assert._
 import org.hamcrest.CoreMatchers.equalTo
@@ -9,7 +11,7 @@ class FilePairingReaderTest {
 
   @Test
   def testReadPairingFromFile(): Unit = {
-    val pairing: Pairing = FilePairingReader.readPairing("src/test/resources/test-pairing.csv", inverse = false)
+    val pairing: Pairing = FilePairingReader.readPairing(new File("src/test/resources/test-pairing.csv"), inverse = false)
     assertThat(pairing.maxTeam.name, equalTo("Hugin2"))
     assertThat(pairing.maxTeam.factions.head.name, equalTo("h1"))
     assertThat(pairing.minTeam.name, equalTo("Munin2"))

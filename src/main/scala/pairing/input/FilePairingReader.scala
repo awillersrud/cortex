@@ -1,5 +1,6 @@
 package pairing.input
 
+import java.io.File
 import java.nio.charset.StandardCharsets
 
 import pairing.MatchupEvaluations._
@@ -9,8 +10,8 @@ import scala.io.Source
 
 object FilePairingReader {
 
-  def readPairing(path: String, inverse: Boolean) : Pairing = {
-    val lines: Iterator[String] = Source.fromFile(path, StandardCharsets.UTF_8.toString).getLines()
+  def readPairing(file: File, inverse: Boolean) : Pairing = {
+    val lines: Iterator[String] = Source.fromFile(file, StandardCharsets.UTF_8.toString).getLines()
     def readTeam: Team = {
       val teamName = lines.next()
       val factions: List[Faction] = (for (i <- 1 to 5) yield new Faction(lines.next().trim)).toList
