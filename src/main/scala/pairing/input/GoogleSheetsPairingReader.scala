@@ -30,8 +30,8 @@ class GoogleSheetsPairingReader(val sheetId: String, val range: String, val vert
     var horizontalTeamName = "HorizontalTeam"
     val teamNamesCell: String = scalaValues.head.head
     if (teamNamesCell.contains("/")) {
-      val verticalTeamName: String = teamNamesCell.split("/")(0).trim()
-      val horizontalTeamName: String = teamNamesCell.split("/")(1).trim()
+      verticalTeamName = teamNamesCell.split("/")(0).trim()
+      horizontalTeamName = teamNamesCell.split("/")(1).trim()
     } else {
       System.out.println("WARN Cannot parse team names, defaulting to " + verticalTeamName + "/" + horizontalTeamName)
     }
