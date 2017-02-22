@@ -3,11 +3,11 @@
 
     <groupId>no.awi</groupId>
     <artifactId>wtc-pairing</artifactId>
-    <version>0.2-SNAPSHOT</version>
+    <version>0.2</version>
 
     <scm>
         <developerConnection>scm:git:https://github.com/awillersrud/pairing</developerConnection>
-      <tag>HEAD</tag>
+      <tag>wtc-pairing-0.2</tag>
   </scm>
 
     <dependencies>
