@@ -2,11 +2,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>no.awi</groupId>
-    <artifactId>wtc-pairing</artifactId>
+    <artifactId>cortex</artifactId>
     <version>0.3-SNAPSHOT</version>
 
     <scm>
-        <developerConnection>scm:git:https://github.com/awillersrud/pairing</developerConnection>
+        <developerConnection>scm:git:https://github.com/awillersrud/cortex</developerConnection>
       <tag>HEAD</tag>
   </scm>
 
@@ -74,7 +74,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>pairing.PairingRunner</mainClass>
+                            <mainClass>cortex.CortexRunner</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
