@@ -3,11 +3,11 @@
 
     <groupId>no.awi</groupId>
     <artifactId>cortex</artifactId>
-    <version>0.3-SNAPSHOT</version>
+    <version>0.3</version>
 
     <scm>
         <developerConnection>scm:git:https://github.com/awillersrud/cortex</developerConnection>
-      <tag>HEAD</tag>
+      <tag>cortex-0.3</tag>
   </scm>
 
     <dependencies>
