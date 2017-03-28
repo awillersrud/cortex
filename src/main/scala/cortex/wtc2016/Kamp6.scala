@@ -4,16 +4,10 @@ import cortex.{InteractivePairing, MatchupEvaluations, Pairing, Team}
 
 object Kamp6 {
 
-  def enemy = Team.create("England Lions", "Caine2+Haley2", "Baldur1+Baldur2", "Lucant+Dir", "Grim2+Ragnor1", "Siege1+Stryker2", null)
+  def enemy = Team.create("England Lions", max = false, player1 = "Caine2+Haley2", player2 = "Baldur1+Baldur2", player3 = "Lucant+Dir", player4 = "Grim2+Ragnor1", player5 = "Siege1+Stryker2")
 
   def norwayBlue =
-    Team.create("Norway Blue",
-    "Endre CoC",
-    "Mats Trolls",
-    "Leif Khador",
-    "Asbjørn Circle",
-    "Martin Legion",
-    null)
+    Team.create("Norway Blue", player1 = "Endre CoC", player2 = "Mats Trolls", player3 = "Leif Khador", player4 = "Asbjørn Circle", player5 = "Martin Legion")
 
   val scoreArray = Array(
     Array(4,3,6,3,5),

@@ -9,6 +9,12 @@ object MatchupEvaluations {
   type ScoreArray = Array[Array[Int]]
 
   def fromScoreArray(maxTeam: Team, minTeam: Team, scoreArray: ScoreArray): MatchupEvaluations = {
+    if (minTeam.max) {
+      throw new IllegalArgumentException("Min team has max=true")
+    }
+    if (!maxTeam.max) {
+      throw new IllegalArgumentException("Max team has max=false")
+    }
     val evaluations: MatchupEvaluations = new MatchupEvaluations(maxTeam, minTeam)
     for ((maxFaction, maxFactionIndex) <- maxTeam.factions.zipWithIndex) {
       for ((minFaction, minFactionIndex) <- minTeam.factions.zipWithIndex) {
@@ -24,7 +30,8 @@ object MatchupEvaluations {
 
 class MatchupEvaluations(val maxTeam:Team, val minTeam:Team) {
   def inverse(): MatchupEvaluations = {
-    val inverse: MatchupEvaluations = new MatchupEvaluations(minTeam, maxTeam)
+    val inverse: MatchupEvaluations = new MatchupEvaluations(new Team(minTeam.name, true, minTeam.factions),
+      new Team(maxTeam.name, false, maxTeam.factions))
 
     def inverseEvalArray(evaluationArray: EvaluationArray, scoreFunction: Int => Int): EvaluationArray = {
       evaluationArray.map(matchupAndScore => Tuple2(new Matchup(matchupAndScore._1.minFaction, matchupAndScore._1.maxFaction), scoreFunction(matchupAndScore._2)))
@@ -56,15 +63,6 @@ class MatchupEvaluations(val maxTeam:Team, val minTeam:Team) {
       case None => throw new IllegalStateException("Missing evaluation for matchup: " + matchup)
       case Some(score: Int) => score
     }
-  }
-
-  def print(): Unit = {
-    val headers: List[String] = maxTeam.name + "/" + minTeam.name :: minTeam.factions.map(f => f.name)
-    val values: List[List[String]] = for (maxFaction <- maxTeam.factions) yield {
-      val scores: List[String] = for (minFaction <- minTeam.factions) yield scoreMatchup(new Matchup(maxFaction, minFaction)).toString
-      maxFaction.name :: scores
-    }
-    Console.println(util.Tabulator.format(headers :: values))
   }
 
 }

@@ -4,16 +4,10 @@ import cortex._
 
 object Kamp1 {
 
-  def enemy = Team.create("USA White", "Skorne", "Retribution", "Legion", "Circle", "Cygnar", null)
+  def enemy = Team.create("USA White", max = false, player1 = "Skorne", player2 = "Retribution", player3 = "Legion", player4 = "Circle", player5 = "Cygnar")
 
   def norwayBlue =
-    Team.create("Norway Blue",
-    "Endre CoC",
-    "Mats Trolls",
-    "Leif Khador",
-    "Asbjørn Circle",
-    "Martin Legion",
-    null)
+    Team.create("Norway Blue", max = true, player1 = "Endre CoC", player2 = "Mats Trolls", player3 = "Leif Khador", player4 = "Asbjørn Circle", player5 = "Martin Legion")
 
   val scoreArray = Array(
     Array(3,4,4,3,3),

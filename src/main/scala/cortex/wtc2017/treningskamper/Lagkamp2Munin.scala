@@ -4,16 +4,10 @@ import cortex._
 
 object Lagkamp2Munin {
 
-  def enemy = Team.create("Hugin2", "Doomy3/Ragnor", "Denny1/Coven", "Haley2/Haley3", "Amon/HR", "Rahn/Helynna", null)
+  def enemy = Team.create("Hugin2", max = false, player1 = "Doomy3/Ragnor", player2 = "Denny1/Coven", player3 = "Haley2/Haley3", player4 = "Amon/HR", player5 = "Rahn/Helynna")
 
   def firstPlayerTeam =
-    Team.create("Munin2",
-      "WW/Una",
-      "Issyria/Rahn",
-      "Sev2/HR",
-      "Abby2/Lylyth3",
-      "Denny1/Coven",
-    null)
+    Team.create("Munin2", player1 = "WW/Una", player2 = "Issyria/Rahn", player3 = "Sev2/HR", player4 = "Abby2/Lylyth3", player5 = "Denny1/Coven")
 
   /*
   	Asbjørn	Nico	Christian	Martin	Ole

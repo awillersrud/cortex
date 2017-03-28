@@ -10,7 +10,7 @@ object TestPairings {
   val asbjorn = new Faction("Asbjørn")
   val martin = new Faction("Martin")
 
-  def norwayBlue = new Team("Blue", endre :: thomas :: leif :: asbjorn :: martin :: Nil, null)
+  def norwayBlue = new Team("Blue", true, endre :: thomas :: leif :: asbjorn :: martin :: Nil)
 
   val gard = new Faction("Gard")
   val terje = new Faction("Terje")
@@ -18,7 +18,7 @@ object TestPairings {
   val jarle = new Faction("Jarle")
   val kuba = new Faction("Kuba")
 
-  def norwayRed = new Team("Red", gard :: terje :: jonas :: jarle :: kuba :: Nil, null)
+  def norwayRed = new Team("Red", false, gard :: terje :: jonas :: jarle :: kuba :: Nil)
 
   val scoreArray = Array(
     Array(5,6,3,5,6),
@@ -34,20 +34,20 @@ object TestPairings {
   }
 
   val blueVsRedMoves: List[Move] =
-    new PutUp(martin, true) ::
-      new Counter((gard, jonas), false) ::
-      new ChooseAndCounter(gard, jonas, (asbjorn, endre), true) ::
-      new ChooseAndCounter(asbjorn, endre, (terje, jarle), false) ::
-      new ChooseAndCounter(terje, jarle, (thomas, leif), true) ::
-      new ChooseLastMatchups(thomas, leif, false) ::
+    new PutUp(martin, norwayBlue) ::
+      new Counter((gard, jonas), norwayRed) ::
+      new ChooseAndCounter(gard, jonas, (asbjorn, endre), norwayBlue) ::
+      new ChooseAndCounter(asbjorn, endre, (terje, jarle), norwayRed) ::
+      new ChooseAndCounter(terje, jarle, (thomas, leif), norwayBlue) ::
+      new ChooseLastMatchups(thomas, leif, norwayRed) ::
       Nil
 
   val blueVsRedExpectedScores = Map[Move, Int](
-    new PutUp(martin, true) -> 24,
-    new Counter((gard, jonas), false) -> 29,
-    new ChooseAndCounter(gard, jonas, (asbjorn, endre), true) -> 27,
-    new ChooseAndCounter(asbjorn, endre, (terje, jarle), false) -> 31,
-    new ChooseAndCounter(terje, jarle, (thomas, leif), true) -> 31,
-    new ChooseLastMatchups(thomas, leif, false) -> 31
+    new PutUp(martin, norwayBlue) -> 24,
+    new Counter((gard, jonas), norwayRed) -> 29,
+    new ChooseAndCounter(gard, jonas, (asbjorn, endre), norwayBlue) -> 27,
+    new ChooseAndCounter(asbjorn, endre, (terje, jarle), norwayRed) -> 31,
+    new ChooseAndCounter(terje, jarle, (thomas, leif), norwayBlue) -> 31,
+    new ChooseLastMatchups(thomas, leif, norwayRed) -> 31
   )
 }

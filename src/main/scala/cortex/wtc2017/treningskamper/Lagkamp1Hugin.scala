@@ -4,15 +4,9 @@ import cortex._
 
 object Lagkamp1Hugin {
 
-  def enemy = Team.create("Munin1", "Cygnar", "Circle", "Legion", "Cryx", "Merc", null)
+  def enemy = Team.create("Munin1", max = false, player1 = "Cygnar", player2 = "Circle", player3 = "Legion", player4 = "Cryx", player5 = "Merc")
 
-  def firstPlayerTeam = Team.create("Hugin1",
-    "Jarle",
-    "Asbjørn",
-    "Nico",
-    "Hans",
-    "Kenneth",
-    null)
+  def firstPlayerTeam = Team.create("Hugin1", player1 = "Jarle", player2 = "Asbjørn", player3 = "Nico", player4 = "Hans", player5 = "Kenneth")
 
   /*
 Jarle (Haley2/Haley3): Cygnar: 0, Circle: -1, Legion: 0, Cryx: 1, Mercenaries: 0

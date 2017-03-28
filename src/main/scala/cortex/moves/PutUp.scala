@@ -20,24 +20,22 @@ import cortex._
  *
  *? This process continues until all 5 pairings have been done.
   */
-class PutUp(val faction: Faction, max: Boolean) extends Move {
+class PutUp(val faction: Faction, team: Team) extends Move {
   def nextMoves(gameState: GameState) : List[Move] = {
-    Pairing.combinations(gameState.factionsInHand(!max)).map { counters: (Faction, Faction) =>
-      new Counter(counters, !max)
+    Pairing.combinations(gameState.factionsInHand(!team.max)).map { counters: (Faction, Faction) =>
+      new Counter(counters, gameState.team(!maximizing))
     }.toList
   }
 
-  def getDescription(gameState: GameState) = gameState.team(max).name + " setter ut " + faction.name
-
   override def makeMove(gameState: GameState): Unit = {
-    gameState.removeFactionFromHand(faction, max)
-    gameState.setPutUp(Some(faction), max)
+    gameState.removeFactionFromHand(faction, team.max)
+    gameState.setPutUp(Some(faction), team.max)
     gameState.round += 1
   }
 
   override def undoMove(gameState: GameState): Unit = {
-    gameState.addFactionToHand(faction, max)
-    gameState.setPutUp(None, max)
+    gameState.addFactionToHand(faction, team.max)
+    gameState.setPutUp(None, team.max)
     gameState.round -= 1
   }
 
@@ -49,6 +47,6 @@ class PutUp(val faction: Faction, max: Boolean) extends Move {
     case _ => false
   }
 
-  def maximizing : Boolean = max
+  def maximizing : Boolean = team.max
 
 }

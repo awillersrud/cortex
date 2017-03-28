@@ -2,16 +2,19 @@ package cortex
 
 import java.io.File
 
-import cortex.moves.{ChooseLastMatchups, Move}
+import cortex.moves._
+import cortex.AnsiEscapeCode._
 
 import scala.collection.mutable
 import scala.io.StdIn
 
 class InteractivePairing(pairing: Pairing) {
 
+  private def gameState = pairing.gameState
+
   def printMovesToConsole(moves: List[Move]): Unit = {
     for ((move, i) <- moves.zipWithIndex) {
-      Console.println("[" + (i + 1) + "] " + pairing.describe(move))
+      Console.println("[" + (i + 1) + "] " + describeMove(move))
     }
   }
 
@@ -23,17 +26,16 @@ class InteractivePairing(pairing: Pairing) {
 
   def run() {
 
-    pairing.matchupEvaluations.print()
+    printMatchupEvaluations()
 
     while (true) {
 
       val nextMoves: List[Move] = pairing.nextMoves()
       if (nextMoves == Nil) {
         printMoves()
-        pairing.gameState.printMatchups()
-
+        printMatchups()
       } else {
-        pairing.gameState.printGameState()
+        printGameState()
       }
 
       val commands: List[Command] = createNextCommands(nextMoves)
@@ -114,7 +116,7 @@ class InteractivePairing(pairing: Pairing) {
     val originalMoves = pairing.moves.toList
     pairing.moves.foreach(m => pairing.undoMove(m))
     originalMoves.reverseIterator.foreach(m => {
-      Console.println(m.getDescription(pairing.gameState))
+      Console.println(describeMove(m))
       pairing.makeMove(m)
     })
   }
@@ -147,10 +149,10 @@ class InteractivePairing(pairing: Pairing) {
   class MoveCommand(val index: Int, val move: Move, score: Score, minScore: Score)
     extends Command(
       index.toString,
-      "[" + index + "] " + move.getDescription(pairing.gameState) + ", score: " + score
+      "[" + index + "] " + describeMove(move) + ", score: " + score
       ,
       { input: String =>
-        Console.println("Performing move [" + index + "] " + pairing.describe(move))
+        Console.println("Performing move [" + index + "] " + describeMove(move))
         pairing.makeMove(move)
       },
       hidden = false) {
@@ -171,9 +173,65 @@ class InteractivePairing(pairing: Pairing) {
 
     def createContinuationDescription(continuationEvaluations: List[Evaluation]): String =
       continuationEvaluations.map(e => "\t" + e.move.choice + ":" + e.score).mkString("\n")
-
   }
 
+  def printGameState() : Unit = {
+    printMatchups()
+
+    val headers = "Team" :: "Hand" :: Nil
+    val maxValues = gameState.maxTeam.name :: gameState.maxFactionsInHand.map(f => AnsiEscapeCode.color(f.name, max = true)).mkString(",") :: Nil
+    val minValues = gameState.minTeam.name :: gameState.minFactionsInHand.map(f => AnsiEscapeCode.color(f.name, max = false)).mkString(",") :: Nil
+
+    println(util.Tabulator.format(List(headers, maxValues, minValues)))
+  }
+
+  def printMatchupEvaluations(): Unit = {
+    val headers: List[String] = pairing.maxTeam.name + "/" + pairing.minTeam.name :: pairing.minTeam.factions.map(f => f.name)
+    val values: List[List[String]] = for (maxFaction <- pairing.maxTeam.factions) yield {
+      val scores: List[String] = for (minFaction <- pairing.minTeam.factions) yield pairing.matchupEvaluations.scoreMatchup(new Matchup(maxFaction, minFaction)).toString
+      maxFaction.name :: scores
+    }
+    Console.println(util.Tabulator.format(headers :: values))
+  }
+
+  def printMatchups(): Unit = {
+    if (gameState.chosenMatchups.isEmpty)
+      return
+
+    var accumulatedScore = 0
+    val matchupRows: List[List[String]] = (for ((matchup:Matchup, index) <- gameState.chosenMatchups.reverse.zipWithIndex)
+      yield {
+        val matchupScore: Int = gameState.scoreMatchup(matchup.maxFaction, matchup.minFaction)
+        accumulatedScore += matchupScore
+        matchup.maxFaction.toString :: matchup.minFaction.toString :: matchupScore.toString :: Nil
+      }).toList
+
+    Console.println("Matchups (score: " + accumulatedScore + ")")
+    val headers : List[String] = pairing.maxTeam.toString :: pairing.minTeam.toString :: "Score" :: Nil
+
+    println(util.Tabulator.format(headers :: matchupRows))
+  }
+
+  def describeMove(move: Move): String = {
+    val team: Team = gameState.team(move.maximizing)
+    val max: Boolean = move.maximizing
+
+    move match {
+      case putUp:PutUp => team.name + " setter ut " + color(putUp.faction.name, max)
+      case counter:Counter =>
+        val putUpFaction = if (max) gameState.minFactionPutUp.get else gameState.maxFactionPutUp.get
+        team.name + " kontrer " + color(putUpFaction.name, !max) + " med (" + color(counter.counters._1.name, max) + ", " + color(counter.counters._2.name, max) + ")"
+      case chooseAndCounter:ChooseAndCounter => team.name + " velger " +
+        color(chooseAndCounter.chosenFaction.name, !max) + " vs " +
+        color(gameState.getPutUp(max).get.name, max) + "(" +
+        chooseAndCounter.chosenMatchupScore(gameState) + ") og kontrer " +
+        color(chooseAndCounter.nonChosenFaction.name, !max) + " med (" + color(chooseAndCounter.counters._1.name, max) + ", " + color(chooseAndCounter.counters._2.name, max) + ")"
+      case chooseLastMatchups:ChooseLastMatchups =>
+        val factionInHand = if (max) gameState.maxFactionsInHand.head else gameState.minFactionsInHand.head
+        team.name + " velger " + color(chooseLastMatchups.chosenFaction.name, !max) + " vs " + color(gameState.getPutUp(max).get.name, max) + "(" + chooseLastMatchups.chosenMatchupScore(gameState) + ") og " +
+          color(chooseLastMatchups.nonChosenFaction.name, !max) + " vs " + color(factionInHand.name, max) + "(" + chooseLastMatchups.nonChosenMatchupScore(gameState) + ")"
+    }
+  }
 
 }
 

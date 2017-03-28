@@ -17,7 +17,7 @@ class PairingTest {
   @Test
   def testEvalutateFirstCounterMoves(): Unit = {
     val moves: List[Evaluation] = norwayBlueVsRed
-      .makeMoves(new PutUp(martin, true) :: Nil)
+      .makeMoves(new PutUp(martin, norwayBlue) :: Nil)
       .evaluateMoves()
     assert(moves.size == 5*4/2)
   }
@@ -25,8 +25,8 @@ class PairingTest {
   @Test
   def testEvalutateFirstChooseAndCounterMoves(): Unit = {
     val moves: List[Evaluation] = norwayBlueVsRed.makeMoves(
-      new PutUp(martin, true) ::
-        new Counter((gard, jonas), false) :: Nil)
+      new PutUp(martin, norwayBlue) ::
+        new Counter((gard, jonas), norwayRed) :: Nil)
       .evaluateMoves()
     assert(moves.size == 4*3/2*2)
   }
@@ -55,8 +55,8 @@ class PairingTest {
         val evaluation: Evaluation = pairing.evaluateMove(move)
         val expectedScore: Int = expectedScores.get(move).get
         val actualScore: Int = evaluation.score.minScore
-        println("Verifying score for " + pairing.describe(move) + ":" + expectedScore)
-        assertEquals("Wrong score for: " + pairing.describe(move), expectedScore, actualScore)
+        println("Verifying score for " + move + ":" + expectedScore)
+        assertEquals("Wrong score for: " + move, expectedScore, actualScore)
       }
       pairing.makeMove(move)
     }

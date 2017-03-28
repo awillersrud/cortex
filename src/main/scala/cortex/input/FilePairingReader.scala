@@ -12,14 +12,14 @@ object FilePairingReader {
 
   def readPairing(file: File, inverse: Boolean) : Pairing = {
     val lines: Iterator[String] = Source.fromFile(file, StandardCharsets.UTF_8.toString).getLines()
-    def readTeam: Team = {
+    def readTeam(max: Boolean): Team = {
       val teamName = lines.next()
       val factions: List[Faction] = (for (i <- 1 to 5) yield new Faction(lines.next().trim)).toList
       lines.next() // empty line after each team
-      new Team(teamName, factions, null)
+      new Team(teamName, max, factions)
     }
-    val maxTeam = readTeam
-    val minTeam = readTeam
+    val maxTeam = readTeam(true)
+    val minTeam = readTeam(false)
 
     def readScoreArray: ScoreArray = {
       (for (i <-  1 to 5)

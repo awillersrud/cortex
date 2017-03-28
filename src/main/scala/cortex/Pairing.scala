@@ -12,19 +12,6 @@ object Pairing {
   def combinations(factions: Iterable[Faction]): Iterable[(Faction, Faction)] = {
     for (f1 <- factions; f2 <- factions if f1.name < f2.name) yield (f1, f2)
   }
-
-  def convertToInverseMoves(moves:List[Move]) : List[Move] = moves match {
-    case (m1:PutUp) :: xs =>
-      new PutUp(m1.faction, !m1.maximizing) :: convertToInverseMoves(xs)
-    case (m1:Counter) :: xs =>
-      new Counter(m1.counters, !m1.maximizing) :: convertToInverseMoves(xs)
-    case (m1:ChooseAndCounter) :: xs =>
-      new ChooseAndCounter(m1.chosenFaction, m1.nonChosenFaction, m1.counters, !m1.maximizing) :: convertToInverseMoves(xs)
-    case (m1:ChooseLastMatchups) :: Nil =>
-      new ChooseLastMatchups(m1.chosenFaction, m1.nonChosenFaction, !m1.maximizing) :: Nil
-    case _ => Nil
-  }
-
 }
 
 class Pairing(val matchupEvaluations: MatchupEvaluations) {
@@ -49,9 +36,9 @@ class Pairing(val matchupEvaluations: MatchupEvaluations) {
 
   def startingMoves(): List[Move] = {
     if (maxTeamStarts)
-      maxTeam.factions.map { a: Faction => new PutUp(a, true) }
+      maxTeam.factions.map { a: Faction => new PutUp(a, maxTeam) }
     else
-      minTeam.factions.map { a: Faction => new PutUp(a, false) }
+      minTeam.factions.map { a: Faction => new PutUp(a, minTeam) }
   }
 
   def nextMoves(): List[Move] = moves.headOption match {
@@ -86,10 +73,6 @@ class Pairing(val matchupEvaluations: MatchupEvaluations) {
 
   def getTeam(move: Move): Team = {
     if (move.maximizing) maxTeam else minTeam
-  }
-
-  def describe(move: Move): String = {
-    move.getDescription(gameState)
   }
 
   def makeMoves(moves: List[Move]) = {
@@ -173,12 +156,12 @@ class Faction(val name: String) extends Ordered[Faction] {
   override def toString = name
 }
 
-class Team(val name: String, val factions: List[Faction], val scoreArray: Array[Array[Int]]) {
+class Team(val name: String, val max: Boolean, val factions: List[Faction]) {
   override def toString = name
 }
 object Team {
-  def create(name: String, player1: String, player2: String, player3: String, player4: String, player5: String, scoreArray: ScoreArray) = {
-    new Team(name, new Faction(player1) :: new Faction(player2) :: new Faction(player3) :: new Faction(player4) :: new Faction(player5) :: Nil, scoreArray)
+  def create(name: String, max: Boolean = true, player1: String, player2: String, player3: String, player4: String, player5: String) = {
+    new Team(name, max, new Faction(player1) :: new Faction(player2) :: new Faction(player3) :: new Faction(player4) :: new Faction(player5) :: Nil)
   }
 }
 

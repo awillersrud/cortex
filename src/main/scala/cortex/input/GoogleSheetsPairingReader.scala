@@ -35,8 +35,8 @@ class GoogleSheetsPairingReader(val sheetId: String, val range: String, val vert
     } else {
       System.out.println("WARN Cannot parse team names, defaulting to " + verticalTeamName + "/" + horizontalTeamName)
     }
-    val horizontalTeam = new Team(horizontalTeamName, scalaValues.head.drop(1).map(value => new Faction(value.trim)).toList, null)
-    val verticalTeam = new Team(verticalTeamName, scalaValues.drop(1).map(row => new Faction(row(0).trim)).toList, null)
+    val horizontalTeam = new Team(horizontalTeamName, !verticalIsMaxTeam, scalaValues.head.drop(1).map(value => new Faction(value.trim)).toList)
+    val verticalTeam = new Team(verticalTeamName, verticalIsMaxTeam, scalaValues.drop(1).map(row => new Faction(row(0).trim)).toList)
 
     val evaluations: Array[Array[Int]] =
      for ((row:Array[String],rowIndex) <- scalaValues.drop(1).zipWithIndex) yield

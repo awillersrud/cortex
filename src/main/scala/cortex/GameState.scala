@@ -135,32 +135,4 @@ class GameState(matchupEvaluations: MatchupEvaluations) {
     new Score(0, totalValue, matchups.size, Nil)
   }
 
-  def printGameState() : Unit = {
-    printMatchups()
-
-    val headers = "Team" :: "Hand" :: "Put Up" :: "Counters" :: Nil
-    val maxValues = maxTeam.name :: maxFactionsInHand.mkString(",") :: maxFactionPutUp.getOrElse(None) :: maxFactionCounters.getOrElse(None) :: Nil
-    val minValues = minTeam.name :: minFactionsInHand.mkString(",") :: minFactionPutUp.getOrElse(None) :: minFactionCounters.getOrElse(None) :: Nil
-
-    println(util.Tabulator.format(List(headers, maxValues, minValues)))
-  }
-
-  def printMatchups(): Unit = {
-    if (chosenMatchups.isEmpty)
-      return
-
-    var accumulatedScore = 0
-    val matchupRows: List[List[String]] = (for ((matchup:Matchup, index) <- chosenMatchups.reverse.zipWithIndex)
-    yield {
-      val matchupScore: Int = scoreMatchup(matchup.maxFaction, matchup.minFaction)
-      accumulatedScore += matchupScore
-      matchup.maxFaction.toString :: matchup.minFaction.toString :: matchupScore.toString :: Nil
-    }).toList
-
-    Console.println("Matchups (score: " + accumulatedScore + ")")
-    val headers : List[String] = maxTeam.toString :: minTeam.toString :: "Score" :: Nil
-
-    println(util.Tabulator.format(headers :: matchupRows))
-  }
-
 }

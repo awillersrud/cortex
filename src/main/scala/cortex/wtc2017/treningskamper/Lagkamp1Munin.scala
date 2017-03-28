@@ -4,16 +4,10 @@ import cortex._
 
 object Lagkamp1Munin {
 
-  def enemy = Team.create("Hugin1", "Jarle", "Asbjørn", "Nico", "Hans", "Kenneth", null)
+  def enemy = Team.create("Hugin1", max = false, player1 = "Jarle", player2 = "Asbjørn", player3 = "Nico", player4 = "Hans", player5 = "Kenneth")
 
   def firstPlayerTeam =
-    Team.create("Munin1",
-      "Jonas",
-      "Cuba",
-      "Sverre",
-      "Toro",
-      "Stian",
-    null)
+    Team.create("Munin1", player1 = "Jonas", player2 = "Cuba", player3 = "Sverre", player4 = "Toro", player5 = "Stian")
 
   /*
 Spiller......Jarle......Asbjørn.....Nico....Hans....Kenneth
