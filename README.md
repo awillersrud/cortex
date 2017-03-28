@@ -6,11 +6,11 @@ Cortex is a command line pairing utility based on the Minimax algorithm. This di
 
 Download the latest jar-with-dependencies from https://github.com/awillersrud/cortex/releases
 
+## Running Cortex
+
 ### Prerequisites
 
 Cortex requires Java
-
-## Running Cortex
 
 ### Read pairing table from a Google Sheet document
 
