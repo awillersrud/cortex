@@ -14,7 +14,7 @@ Cortex requires Java
 
 ### Read pairing table from a Google Sheet document
 
-`java -jar cortex-0.3-jar-with-dependencies.jar sheet <GoogleSheetId> --range A3:F8`
+`java -jar cortex-0.3-jar-with-dependencies.jar sheet <GoogleSheetId> --range A3:F8 --categoryMappingsRange A19:B24`
 
 ### Read pairing table from file
 

@@ -6,7 +6,7 @@ import cortex.input.{FilePairingReader, GoogleSheetsPairingReader}
 
 object CortexRunner {
 
-  case class Config(file: Option[File] = None, sheet: Option[String] = None, range: String = "A3:F8", inverse: Boolean = false)
+  case class Config(file: Option[File] = None, sheet: Option[String] = None, range: String = "A3:F8", categoryMappingsRange: Option[String] = None, inverse: Boolean = false)
 
 
   def main(args: Array[String]): Unit = {
@@ -21,6 +21,7 @@ object CortexRunner {
 
       cmd("sheet").text("Read pairing table from Google Sheet").children(
         opt[String]("range").action((r,c)=>c.copy(range = r)).required().text("Sheet range. Must be 6x6. Supports sheet prefix like: Match2!A3:F8"),
+        opt[String]("categoryMappingsRange").action((r,c)=>c.copy(categoryMappingsRange = Some(r))).optional().text("Optional. Mapping of names to score values. Must be 2 columns, but can have arbitrary number of rows. Supports sheet prefix like: Match2!A19:F24"),
         arg[String]("<GoogleSheetId>").action((s,c)=>c.copy(sheet=Some(s))).text("Id found in google sheet url"),
         note("")
       )
@@ -35,7 +36,7 @@ object CortexRunner {
         if (config.file.isDefined) {
           new InteractivePairing(FilePairingReader.readPairing(config.file.get, config.inverse)).run()
         } else if (config.sheet.isDefined) {
-          val reader = new GoogleSheetsPairingReader(config.sheet.get, config.range, verticalIsMaxTeam = true, config.inverse)
+          val reader = new GoogleSheetsPairingReader(config.sheet.get, config.range, verticalIsMaxTeam = true, config.inverse, config.categoryMappingsRange)
           new InteractivePairing(reader.readPairing()).run()
         } else {
           parser.showUsageAsError()
