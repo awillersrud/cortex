@@ -16031,4 +16031,24 @@ update wtc2019_list set theme = replace(theme, '"', '');
 update wtc2019_player set faction = replace(faction, '"', '');
 alter table wtc2019_player drop column cccode;
 
+update wtc2019_team
+set name = 'Sweden Lagom'
+where name = 'Sweden 2';
+
+-- Delete alternate
+delete from wtc2019_player where "name" = '"Mateusz Dziewanowski"';
+
 alter table wtc2019_team add column tier integer;
+
+update wtc2019_team
+set tier = 1
+where name in (
+'Canada Polar Bear','Canada Moose','England Knights', 'England Lions', 'Germany Wildsau', 'Poland Centrum', 'Poland South', 'USA East', 'Scotland Laphroaig','France Panoramix','Czech Lions','Sweden Lagom'
+);
+
+update wtc2019_team
+set tier = 2
+where name in (
+'Sweden Ombudsman'
+);
+

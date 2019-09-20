@@ -156,20 +156,12 @@ where hugin.team_id = 36
 
 
 
-
-select * from wtc2019_team where tier = 1 order by name;
-
-update wtc2019_team
-set tier = 1
-where name in (
-'Canada Polar Bear','Canada Moose','England Knights', 'England Lions', 'Germany Wildsau', 'Poland Centrum', 'Poland South', 'USA East', 'Scotland Laphroaig','France Panoramix','Czech Lions','Sweden Ombudsman'
-);
-
-update wtc2019_team
-set tier = 2
-where name in (
-'Sweden 2'
-);
+select *
+from wtc2019_team t
+inner join wtc2019_player p on p.team_id=t.id
+inner join wtc2019_list l on l.player_id=p.id
+where t.tier = 1 
+order by t.name;
 
 
 select faction, count(*)
@@ -177,7 +169,17 @@ from wtc2019_player p
 inner join wtc2019_team t on t.id=p.team_id
 where t.tier=1
 group by faction
-order by count(*) desc;
+order by count(*) desc
+;
+
+select t.name, p."name", l.*
+from wtc2019_player p
+inner join wtc2019_team t on t.id=p.team_id
+inner join wtc2019_list l on l.player_id=p.id
+--where t.tier=1
+where l.caster = 'Baldur 2'
+;
+
 
 select player_id, opposing_player_id, min(evaluation), max(evaluation), count(*)
 from wtc2019_eval 
@@ -235,4 +237,7 @@ Vil helst spille mot Menoth, Legion og Circle pga mye erfaring der
 
 
 **/
+
+
+
 
